@@ -1,0 +1,67 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\ideal\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js install
+
+PATH: 
+  C:\Users\ideal\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\cmd;C:\oraclexe\app\oracle\product\10.2.0\server\bin;C:\Users\ideal\AppData\Roaming\npm\node_modules\yarn\bin;C:\Users\ideal\App Data\Roaming\npm\node_modules\expo-cli\bin;C:\Users\ideal\AppData\Roaming\npm\no de_modules\nodemon\bin;C:\Users\ideal\AppData\Roaming\npm;C:\Program Files\Git\cmd;C:\Users\ideal\AppData\Local\Android\Sdk\platform-tools;C:\Users\ideal\AppData\Local\Android\Sdk;%NVM_HOME%;%NVM_SYMLINK%;C:\ProgramData\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\Sy stem32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Program Files\dotnet\ ;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCo mmon;C:\Program Files\Git\cmd;C:\Users\ideal\AppData\L ocal\Android\Sdk\emulator;C:\Users\ideal\AppData\Roaming\npm\node_modules\yarn\bin;C:\Users\ideal\App Data\Roaming\npm\node_modules\expo-cli\bin;C:\Users\ideal\AppData\Roaming\npm\no de_modules\nodemon\bin;C:\Users\ideal\AppData\Roaming\npm\node_modules\expo\bin;C:\Users\ideal\AppData\Local\Android\Sdk\emulator;C:\Users\ideal\AppData\Local\Programs\Microsoft VS Code\binD;C:\Program Files\Git\SQL Plus\instantclient_19_11;C:\Users\ideal\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\ideal\AppData\Roaming\npm;C:\Users\ideal\AppData\Roaming\ngrok;C:\Users\ideal\AppData\Local\Hyper\app-3.0.2\resources\bin;C:\Users\ideal\AppData\Local\Programs\Hyper\resources\bin;C:\Users\ideal\AppData\Local\Android\Sdk\platform-tools;C:\Program Files\Android\Android Studio\jre\bin;C:\Users\ideal\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  12.22.3
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@material-ui/core/-/core-4.6.1.tgz: ESOCKETTIMEDOUT
+      at ClientRequest.<anonymous> (C:\Users\ideal\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141289:19)
+      at Object.onceWrapper (events.js:420:28)
+      at ClientRequest.emit (events.js:314:20)
+      at TLSSocket.emitRequestTimeout (_http_client.js:715:9)
+      at Object.onceWrapper (events.js:420:28)
+      at TLSSocket.emit (events.js:326:22)
+      at TLSSocket.Socket._onTimeout (net.js:483:8)
+      at listOnTimeout (internal/timers.js:554:17)
+      at processTimers (internal/timers.js:497:7)
+
+npm manifest: 
+  {
+    "name": "manuscriptor",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "main": "src/index.js",
+    "dependencies": {
+      "@emotion/react": "^11.8.1",
+      "@emotion/styled": "^11.8.1",
+      "@material-ui/core": "4.6.1",
+      "@material-ui/icons": "4.5.1",
+      "@mui/material": "^5.4.4",
+      "react": "16.8.6",
+      "react-dom": "16.8.6",
+      "react-scripts": "3.2.0",
+      "uuid": "3.3.3"
+    },
+    "devDependencies": {
+      "typescript": "3.3.3"
+    },
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "test": "react-scripts test --env=jsdom",
+      "eject": "react-scripts eject"
+    },
+    "browserslist": [
+      ">0.2%",
+      "not dead",
+      "not ie <= 11",
+      "not op_mini all"
+    ]
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
