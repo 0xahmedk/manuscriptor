@@ -3,9 +3,27 @@ import { Link } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
+import { getAuth, signInWithEmailAndPassword } from "../firebase";
 
 function Login() {
   const [viewPassword, setViewPassword] = useState(false);
+  const [state, setState] = useState({ email: "", password: "" });
+
+  const { email, password } = state;
+
+  const handleLogin = async () => {
+    await signInWithEmailAndPassword(getAuth(), email, password)
+      .then((cred) => {
+        console.log(cred.user);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+
+  const onInputChange = (e) => {
+    setState({ ...state, [e.target.name]: e.target.value });
+  };
 
   return (
     <div
@@ -24,7 +42,14 @@ function Login() {
           Email <span style={{ color: "red" }}>*</span>{" "}
         </label>
         <p className="control has-icons-left">
-          <input className="input" type="email" placeholder="Email" />
+          <input
+            className="input"
+            type="email"
+            placeholder="Email"
+            name="email"
+            value={email}
+            onChange={onInputChange}
+          />
           <span className="icon is-small is-left">
             <FontAwesomeIcon icon={faEnvelope} />
           </span>
@@ -39,6 +64,9 @@ function Login() {
             className="input"
             type={viewPassword ? "text" : "password"}
             placeholder="Password"
+            name="password"
+            value={password}
+            onChange={onInputChange}
           />
           <span className="icon is-small is-left">
             <FontAwesomeIcon icon={faLock} />
@@ -68,7 +96,9 @@ function Login() {
 
       <div class="field">
         <p class="control is-expanded">
-          <button class="button is-info">Login</button>
+          <button onClick={() => handleLogin()} class="button is-info">
+            Login
+          </button>
         </p>
       </div>
 

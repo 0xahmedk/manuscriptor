@@ -10,10 +10,35 @@ import {
   fa3,
 } from "@fortawesome/free-solid-svg-icons";
 
+import { getAuth, createUserWithEmailAndPassword } from "../firebase";
+
 function Register() {
   const [viewPassword, setViewPassword] = useState(false);
+  const [step, setStep] = useState(1);
 
-  const renderStepperButton = (title, color, icon) => (
+  const [state, setState] = useState({
+    email: "",
+    password: "",
+    cpassword: "",
+  });
+
+  const { email, password, cpassword } = state;
+
+  const handleRegister = async () => {
+    await createUserWithEmailAndPassword(getAuth(), email, password)
+      .then((cred) => {
+        console.log(cred.user);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+
+  const onInputChange = (e) => {
+    setState({ ...state, [e.target.name]: e.target.value });
+  };
+
+  const renderStepperButton = (title, color, icon, stp) => (
     <div
       style={{
         display: "flex",
@@ -29,9 +54,10 @@ function Register() {
           height: 30,
           borderRadius: "50%",
           textAlign: "center",
-          backgroundColor: color,
+          backgroundColor: stp == step ? color : "#777",
           marginBottom: 5,
         }}
+        onClick={() => setStep(stp)}
       >
         <FontAwesomeIcon icon={icon} color="#fff" />
       </button>
@@ -154,6 +180,64 @@ function Register() {
             </div>
           </>
         );
+      case 3:
+        return (
+          <>
+            <div className="field">
+              <label class="label">
+                Email <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Street No"
+                  name="email"
+                  value={email}
+                  onChange={onInputChange}
+                  required
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label class="label">
+                Password <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="password"
+                  placeholder="Password"
+                  name="password"
+                  onChange={onInputChange}
+                  value={password}
+                  required
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label class="label">
+                Confirm Password <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="password"
+                  placeholder="Confirm Password"
+                  name="cpassword"
+                  value={cpassword}
+                  onChange={onInputChange}
+                  required
+                />
+              </p>
+            </div>
+            <div class="field">
+              <p class="control is-expanded">
+                <button class="button is-info">Register</button>
+              </p>
+            </div>
+          </>
+        );
     }
   };
 
@@ -182,12 +266,12 @@ function Register() {
           marginBottom: 30,
         }}
       >
-        {renderStepperButton("Name", "lightgreen", faCheck)}
-        {renderStepperButton("Address", "#777", fa2)}
-        {renderStepperButton("ID/Password", "#777", fa3)}
+        {renderStepperButton("Name", "hsl(204, 86%, 53%)", fa1, 1)}
+        {renderStepperButton("Address", "hsl(204, 86%, 53%)", fa2, 2)}
+        {renderStepperButton("ID/Password", "hsl(204, 86%, 53%)", fa3, 3)}
         <div
           style={{
-            width: 230,
+            width: "65%",
             height: 4,
             backgroundColor: "#000",
             position: "absolute",
@@ -196,8 +280,7 @@ function Register() {
           }}
         />
       </div>
-
-      {renderFormBody(1)}
+      <form>{renderFormBody(step)}</form>
 
       <div class="field" style={{ marginTop: 50 }}>
         <p class="control">
