@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
-import { getAuth, signInWithEmailAndPassword } from "../firebase";
+
+import { useAuth } from "../contexts/AuthContext";
 
 function Login() {
   const [viewPassword, setViewPassword] = useState(false);
@@ -11,15 +12,47 @@ function Login() {
 
   const { email, password } = state;
 
-  const handleLogin = async () => {
-    await signInWithEmailAndPassword(getAuth(), email, password)
-      .then((cred) => {
-        console.log(cred.user);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  };
+  const { login } = useAuth();
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  let navigate = useNavigate();
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setSuccess(false);
+
+    if (password.length < 6) {
+      return setError("Passwords must be 6 characters long!");
+    }
+
+    setError("");
+    setLoading(true);
+    await login(email, password).catch((err) => {
+      console.log(err.code);
+      switch (err.code) {
+        case "auth/user-not-found":
+          setError("User not found!");
+          setLoading(false);
+          return;
+        case "auth/wrong-password":
+          setError("Provided password is wrong");
+          setLoading(false);
+          return;
+        default:
+      }
+    });
+
+    if (error.length == 0) {
+      setSuccess(true);
+    }
+
+    setLoading(false);
+
+    navigate("/");
+  }
 
   const onInputChange = (e) => {
     setState({ ...state, [e.target.name]: e.target.value });
@@ -29,20 +62,31 @@ function Login() {
     <div
       style={{
         marginTop: 50,
-        marginRight: 50,
-        marginLeft: 50,
+        marginRight: "30%",
+        marginLeft: "30%",
         padding: 35,
         border: "1px solid #ccc",
         borderRadius: 20,
       }}
     >
       <div className="title">Login</div>
+
+      {error.length > 0 && (
+        <div className="notification is-danger is-light">{error}</div>
+      )}
+      {success && (
+        <div class="notification is-success is-light">
+          <button onClick={() => setSuccess(false)} class="delete"></button>
+          You've been logged in successfully!
+        </div>
+      )}
       <div className="field">
         <label class="label">
           Email <span style={{ color: "red" }}>*</span>{" "}
         </label>
         <p className="control has-icons-left">
           <input
+            required
             className="input"
             type="email"
             placeholder="Email"
@@ -61,6 +105,7 @@ function Login() {
         </label>
         <p className="control has-icons-left has-icons-right">
           <input
+            required
             className="input"
             type={viewPassword ? "text" : "password"}
             placeholder="Password"
@@ -87,21 +132,21 @@ function Login() {
 
       <div class="field ">
         <div class="control">
-          <label class="checkbox ">
-            <input type="checkbox" style={{ marginRight: 5 }} />
-            Remember me
-          </label>
+          <Link to={{ pathname: "/" }}>Reset Password</Link>
         </div>
       </div>
 
       <div class="field">
         <p class="control is-expanded">
-          <button onClick={() => handleLogin()} class="button is-info">
+          <button
+            disabled={loading}
+            onClick={handleLogin}
+            class="button is-info"
+          >
             Login
           </button>
         </p>
       </div>
-
       <div class="field" style={{ marginTop: 50 }}>
         <p class="control">
           <span className="block" style={{ alignSelf: "flex-end" }}>

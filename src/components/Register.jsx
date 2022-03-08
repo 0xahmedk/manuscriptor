@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,11 +10,11 @@ import {
   fa3,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { getAuth, createUserWithEmailAndPassword } from "../firebase";
+import { useAuth } from "../contexts/AuthContext";
 
 function Register() {
   const [viewPassword, setViewPassword] = useState(false);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
 
   const [state, setState] = useState({
     email: "",
@@ -24,15 +24,53 @@ function Register() {
 
   const { email, password, cpassword } = state;
 
-  const handleRegister = async () => {
-    await createUserWithEmailAndPassword(getAuth(), email, password)
-      .then((cred) => {
-        console.log(cred.user);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  };
+  const { signup } = useAuth();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  let navigate = useNavigate();
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    setSuccess(false);
+
+    if (password !== cpassword) {
+      return setError("Passwords do not match");
+    }
+    if (password.length < 6) {
+      return setError("Passwords must be 6 characters long!");
+    }
+
+    setError("");
+    setLoading(true);
+    await signup(email, password).catch((err) => {
+      switch (err.code) {
+        case "auth/email-already-in-use":
+          setError("Email already in use !");
+          setLoading(false);
+          return;
+        case "auth/invalid-password":
+          setError("Password Incorrect! It must be 6 character long minimum");
+          setLoading(false);
+          return;
+        case "auth/invalid-email":
+          setError(
+            "The provided value for the email user property is invalid!"
+          );
+          setLoading(false);
+          return;
+        default:
+          setError("Cannot create account!");
+      }
+    });
+    if (error.length == 0) {
+      setSuccess(true);
+    }
+
+    setLoading(false);
+    navigate("/login");
+  }
 
   const onInputChange = (e) => {
     setState({ ...state, [e.target.name]: e.target.value });
@@ -71,7 +109,7 @@ function Register() {
         return (
           <>
             <div className="field">
-              <div class="select">
+              <div className="select">
                 <select>
                   <option>Select Prefix</option>
                   <option>Mr.</option>
@@ -86,7 +124,7 @@ function Register() {
             <div className="columns">
               <div className="column is-half">
                 <div className="field">
-                  <label class="label">
+                  <label className="label">
                     First Name <span style={{ color: "red" }}>*</span>{" "}
                   </label>
                   <p className="control">
@@ -100,7 +138,7 @@ function Register() {
               </div>
               <div className="column">
                 <div className="field">
-                  <label class="label">
+                  <label className="label">
                     Last Name <span style={{ color: "red" }}>*</span>{" "}
                   </label>
                   <p className="control">
@@ -115,14 +153,14 @@ function Register() {
             </div>
 
             <div className="field">
-              <label class="label">Degree</label>
+              <label className="label">Degree</label>
               <p className="control">
                 <input className="input" type="text" placeholder="Degree" />
               </p>
             </div>
 
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Email <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -130,9 +168,9 @@ function Register() {
               </p>
             </div>
 
-            <div class="field">
-              <p class="control is-expanded">
-                <button class="button is-info">Next</button>
+            <div className="field">
+              <p className="control is-expanded">
+                <button className="button is-info">Next</button>
               </p>
             </div>
           </>
@@ -142,7 +180,7 @@ function Register() {
         return (
           <>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Street # <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -154,7 +192,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 ZipCode <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -162,7 +200,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 City <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -171,7 +209,7 @@ function Register() {
             </div>
 
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Country <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -184,14 +222,14 @@ function Register() {
         return (
           <>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Email <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
                 <input
                   className="input"
                   type="text"
-                  placeholder="Street No"
+                  placeholder="Email"
                   name="email"
                   value={email}
                   onChange={onInputChange}
@@ -200,7 +238,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Password <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -216,7 +254,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label class="label">
+              <label className="label">
                 Confirm Password <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
@@ -231,11 +269,6 @@ function Register() {
                 />
               </p>
             </div>
-            <div class="field">
-              <p class="control is-expanded">
-                <button class="button is-info">Register</button>
-              </p>
-            </div>
           </>
         );
     }
@@ -245,8 +278,8 @@ function Register() {
     <div
       style={{
         marginTop: 50,
-        marginRight: 50,
-        marginLeft: 50,
+        marginRight: "30%",
+        marginLeft: "30%",
         padding: 35,
         border: "1px solid #ccc",
         borderRadius: 20,
@@ -280,10 +313,33 @@ function Register() {
           }}
         />
       </div>
-      <form>{renderFormBody(step)}</form>
+      {error.length > 0 && (
+        <div className="notification is-danger is-light">{error}</div>
+      )}
+      {success && (
+        <div class="notification is-success is-light">
+          <button onClick={() => setSuccess(false)} class="delete"></button>
+          Account has been successfully created!
+        </div>
+      )}
 
-      <div class="field" style={{ marginTop: 50 }}>
-        <p class="control">
+      <form>
+        {renderFormBody(step)}
+        <div className="field">
+          <p className="control is-expanded">
+            <button
+              onClick={handleRegister}
+              disabled={loading}
+              className="button is-info"
+            >
+              {step == 3 ? "Register" : "Next"}
+            </button>
+          </p>
+        </div>
+      </form>
+
+      <div className="field" style={{ marginTop: 50 }}>
+        <p className="control">
           <span className="block" style={{ alignSelf: "flex-end" }}>
             Already have an account?{" "}
             <Link to={{ pathname: "/login" }}>Login </Link>

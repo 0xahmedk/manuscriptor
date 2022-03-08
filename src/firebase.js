@@ -31,8 +31,10 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore();
 
+const auth = getAuth();
+
 export {
-  getAuth,
+  auth,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,

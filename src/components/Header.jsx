@@ -1,7 +1,5 @@
 import React from "react";
 
-import { getAuth, signOut } from "../firebase";
-
 function Header() {
   return (
     <header style={{ display: "flex", flexDirection: "row" }}>
@@ -11,13 +9,7 @@ function Header() {
       >
         <div style={{ color: "#fff" }}>Account</div>
         <div style={{ marginLeft: 10 }}>
-          <button
-            onClick={async () => {
-              await signOut(getAuth());
-            }}
-          >
-            Log Out
-          </button>
+          <button>Log Out</button>
         </div>
         <div style={{ marginLeft: 10 }}>
           <figure className="image is-32x32">
