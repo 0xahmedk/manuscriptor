@@ -12,17 +12,15 @@ function Login() {
 
   const { email, password } = state;
 
-  const { login } = useAuth();
+  const { login, currentUser } = useAuth();
 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   let navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
-    setSuccess(false);
 
     if (password.length < 6) {
       return setError("Passwords must be 6 characters long!");
@@ -30,28 +28,24 @@ function Login() {
 
     setError("");
     setLoading(true);
-    await login(email, password).catch((err) => {
-      console.log(err.code);
+
+    try {
+      await login(email, password).then(() => {
+        navigate("/");
+      });
+    } catch (err) {
       switch (err.code) {
         case "auth/user-not-found":
           setError("User not found!");
-          setLoading(false);
-          return;
+          break;
         case "auth/wrong-password":
           setError("Provided password is wrong");
-          setLoading(false);
-          return;
+          break;
         default:
       }
-    });
-
-    if (error.length == 0) {
-      setSuccess(true);
     }
 
     setLoading(false);
-
-    navigate("/");
   }
 
   const onInputChange = (e) => {
@@ -74,12 +68,7 @@ function Login() {
       {error.length > 0 && (
         <div className="notification is-danger is-light">{error}</div>
       )}
-      {success && (
-        <div class="notification is-success is-light">
-          <button onClick={() => setSuccess(false)} class="delete"></button>
-          You've been logged in successfully!
-        </div>
-      )}
+
       <div className="field">
         <label class="label">
           Email <span style={{ color: "red" }}>*</span>{" "}

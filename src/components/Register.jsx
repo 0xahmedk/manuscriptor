@@ -10,6 +10,8 @@ import {
   fa3,
 } from "@fortawesome/free-solid-svg-icons";
 
+import { countries } from "../modules/countries";
+import { universities } from "../modules/universities";
 import { useAuth } from "../contexts/AuthContext";
 
 function Register() {
@@ -44,32 +46,33 @@ function Register() {
 
     setError("");
     setLoading(true);
-    await signup(email, password).catch((err) => {
+
+    try {
+      await signup(email, password).then(() => {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      });
+    } catch (err) {
       switch (err.code) {
         case "auth/email-already-in-use":
           setError("Email already in use !");
-          setLoading(false);
-          return;
+          break;
         case "auth/invalid-password":
           setError("Password Incorrect! It must be 6 character long minimum");
-          setLoading(false);
-          return;
+          break;
         case "auth/invalid-email":
           setError(
             "The provided value for the email user property is invalid!"
           );
-          setLoading(false);
-          return;
+          break;
         default:
           setError("Cannot create account!");
       }
-    });
-    if (error.length == 0) {
-      setSuccess(true);
     }
 
     setLoading(false);
-    navigate("/login");
   }
 
   const onInputChange = (e) => {
@@ -212,9 +215,14 @@ function Register() {
               <label className="label">
                 Country <span style={{ color: "red" }}>*</span>{" "}
               </label>
-              <p className="control">
-                <input className="input" type="text" placeholder="Country" />
-              </p>
+              <div class="select">
+                <select>
+                  <option>Select Country</option>
+                  {countries.map((c) => (
+                    <option>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </>
         );
@@ -328,7 +336,9 @@ function Register() {
         <div className="field">
           <p className="control is-expanded">
             <button
-              onClick={handleRegister}
+              onClick={() => {
+                console.log(universities);
+              }}
               disabled={loading}
               className="button is-info"
             >

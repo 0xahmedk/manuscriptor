@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-import Login from "./Login";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 
@@ -9,27 +7,35 @@ function Home() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
 
-  let navigate = useNavigate();
-
-  async function handleLogout() {
-    setError("");
-
-    try {
-      await logout();
-      navigate("/login");
-    } catch {
-      setError("Failed to log out");
-    }
-  }
-
   return (
     <div className="container">
       {error.length > 0 && (
         <div className="notification is-danger is-light">{error}</div>
       )}
-      {currentUser && <div>Email: {currentUser.email}</div>}
-
-      <button onClick={handleLogout}>Logout</button>
+      {currentUser && (
+        <section className="hero is-fullheight has-text-centered">
+          <div className="hero-body">
+            {currentUser ? (
+              <div className="">
+                <p className="title">
+                  You are all set now with your account you can start submission
+                  now by clicking button below
+                </p>
+                <Link to={{ pathname: "/submit" }}>
+                  <button className="button is-info">Start Submission</button>
+                </Link>
+              </div>
+            ) : (
+              <div className="">
+                <p className="title">
+                  Looks Like you are not Logged into an account!
+                </p>
+                <p className="title">First Login</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

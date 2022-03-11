@@ -3,12 +3,19 @@ import React from "react";
 function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="footer">
-      <div className="content has-text-centered">
-        <p>Copyright Manuscriptors ⓒ {year}</p>
-        <p>Developed by Roohullah Saqib</p>
+    <div className="footer py-5 has-background-grey-lighter">
+      <div className="container">
+        <div className="content has-text-centered">
+          <span>Copyright Manuscriptors ⓒ {year}</span>
+          <br />
+          <span>Developed by Roohullah Saqib - MSSE</span>
+          <br />
+          <span>Department of Computer Sciences & Software Engineering</span>
+          <br />
+          <span>International Islamic Universty, Islamabad </span>
+        </div>
       </div>
-    </footer>
+    </div>
   );
 }
 
