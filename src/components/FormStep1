@@ -1,0 +1,429 @@
+import React from "react";
+
+function FormStep1({
+  options,
+  currentSelectVal,
+  item,
+  setCurrentSelectVal,
+  newValue,
+  setAddedKeywords,
+  addedKeywords,
+  setOptions,
+  el,
+  faAdd,
+  keyword,
+  faRemove,
+  toggleAuthorModal,
+  onInputChange,
+  author,
+  setAuthorsList,
+  authorsList,
+  setToggleAuthorModal,
+  a,
+}) {
+  return (
+    <div className="" id="form1">
+      <div className="field">
+        <label className="label">
+          Title{" "}
+          <span
+            style={{
+              color: "red",
+            }}
+          >
+            *
+          </span>
+        </label>
+
+        <span
+          style={{
+            backgroundColor: "red",
+            color: "#fff",
+            paddingLeft: 4,
+            paddingRight: 4,
+            borderRadius: 5,
+          }}
+        >
+          Title should be of minimum 20 words
+        </span>
+        <p className="control">
+          <textarea
+            className="textarea is-danger"
+            type="text"
+            placeholder="Title"
+            rows="4"
+          />
+        </p>
+      </div>
+
+      {/* ABSTRACT */}
+      <div className="field">
+        <label className="label">
+          Abstract{" "}
+          <span
+            style={{
+              color: "red",
+            }}
+          >
+            *
+          </span>
+        </label>
+
+        <span
+          style={{
+            backgroundColor: "red",
+            color: "#fff",
+            paddingLeft: 4,
+            paddingRight: 4,
+            borderRadius: 5,
+          }}
+        >
+          Abstract should be of minimum 250 words
+        </span>
+        <p className="control">
+          <textarea
+            className="textarea is-danger"
+            type="text"
+            placeholder="Abstract"
+            rows="8"
+          />
+        </p>
+      </div>
+
+      {/* Additional Material */}
+      <div className="field">
+        <label className="label">Additional Material</label>
+
+        <p className="control">
+          <textarea
+            className="textarea"
+            type="text"
+            placeholder="Additional Material"
+            rows="3"
+          />
+        </p>
+      </div>
+
+      {/* Keywords */}
+      <label className="label">
+        Keywords
+        <span
+          style={{
+            color: "red",
+          }}
+        >
+          *
+        </span>
+      </label>
+      <span
+        style={{
+          backgroundColor: "red",
+          color: "#fff",
+          paddingLeft: 4,
+          paddingRight: 4,
+          borderRadius: 5,
+        }}
+      >
+        Min. 3, Max 5
+      </span>
+      <div className="block">
+        <CreatableSelect
+          placeholder="Select Keyword"
+          isDisabled={addedKeywords.length > 4 ? true : false}
+          options={options}
+          value={currentSelectVal}
+          onChange={(item) => setCurrentSelectVal(item)}
+          onCreateOption={(newValue) => {
+            newValue.split(/,+|,\s+/g).forEach((item) => {
+              addedKeywords.push({
+                value: item,
+                label: item.charAt(0).toUpperCase() + item.slice(1),
+              });
+            });
+            setAddedKeywords([...addedKeywords]);
+          }}
+        />
+      </div>
+      <div className="block">
+        {" "}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          <p className="control"></p>
+
+          <button
+            onClick={() => {
+              if (currentSelectVal.value != "")
+                addedKeywords.push(currentSelectVal);
+              setAddedKeywords([...addedKeywords]);
+              setCurrentSelectVal({
+                value: "",
+                label: "Select Value",
+              });
+              setOptions(
+                options.filter(function (el) {
+                  return el.value != currentSelectVal.value;
+                })
+              );
+            }}
+            className="button is-info"
+          >
+            <FontAwesomeIcon icon={faAdd} />
+            <span
+              style={{
+                marginLeft: 5,
+              }}
+            >
+              Add
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="field">
+        <div className="card">
+          <div className="card-header">
+            <p className="card-header-title">Keywords</p>
+          </div>
+          <div className="card-content">
+            <div className="content">
+              {addedKeywords.length == 0 && (
+                <div className="has-text-centered">No keywords added</div>
+              )}
+              {addedKeywords.map((keyword) => (
+                <div
+                  key={keyword.value}
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingRight: 10,
+                    paddingLeft: 10,
+                    height: 50,
+                    borderBottom: "1px solid #ccc",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: "600",
+                    }}
+                  >
+                    {keyword.label}
+                  </div>
+                  <button
+                    onClick={() => {
+                      options.push(keyword);
+                      setOptions([...options]);
+                      setAddedKeywords(
+                        addedKeywords.filter(function (el) {
+                          return el.value != keyword.value;
+                        })
+                      );
+                    }}
+                    className="button is-danger is-round is-small"
+                  >
+                    <FontAwesomeIcon color="white" icon={faRemove} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="block" />
+
+      {/* Add Author  */}
+      <label className="label">
+        Authors
+        <span
+          style={{
+            color: "red",
+          }}
+        >
+          *
+        </span>
+      </label>
+      {/* Modals */}
+      {toggleAuthorModal && (
+        <div className="modal is-active is-clipped">
+          <div className="modal-background"></div>
+          <div className="modal-card">
+            <header className="modal-card-head">
+              <p className="modal-card-title">Modal title</p>
+              <button className="delete" aria-label="close"></button>
+            </header>
+            <section className="modal-card-body">
+              <div className="field is-horizontal">
+                {/* Author Name */}
+                <div className="field-label is-normal">
+                  <label className="label">Name</label>
+                </div>
+                <div className="field-body">
+                  <div className="field">
+                    <div className="control">
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="Name"
+                        name="name"
+                        value={author.name}
+                        onChange={onInputChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Author Email */}
+              <div className="field is-horizontal">
+                <div className="field-label is-normal">
+                  <label className="label">Email</label>
+                </div>
+                <div className="field-body">
+                  <div className="field">
+                    <div className="control">
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="Email"
+                        name="email"
+                        value={author.email}
+                        onChange={onInputChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Author ORCID */}
+              <div className="field is-horizontal">
+                <div className="field-label is-normal">
+                  <label className="label">ORCID</label>
+                </div>
+                <div className="field-body">
+                  <div className="field">
+                    <div className="control">
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="ORCID with dashes"
+                        name="orcid"
+                        value={author.orcid}
+                        onChange={onInputChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Author Institution */}
+              <div className="field is-horizontal">
+                <div className="field-label is-normal">
+                  <label className="label">Institution</label>
+                </div>
+                <div className="field-body">
+                  <div className="field">
+                    <div className="control">
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="Institution"
+                        name="institution"
+                        value={author.institution}
+                        onChange={onInputChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <footer className="modal-card-foot">
+              <button
+                onClick={() => {
+                  authorsList.push(author);
+                  setAuthorsList(authorsList);
+                  setToggleAuthorModal(false);
+                }}
+                className="button is-info"
+              >
+                Add Author
+              </button>
+              <button
+                onClick={() => setToggleAuthorModal(false)}
+                className="button"
+              >
+                Cancel
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {/* Author Button */}
+      <div className="field">
+        <button
+          onClick={() => setToggleAuthorModal(true)}
+          className="button is-info"
+        >
+          <FontAwesomeIcon icon={faAdd} />
+          <span
+            style={{
+              marginLeft: 5,
+            }}
+          >
+            Add Author
+          </span>
+        </button>
+      </div>
+      <div className="block" />
+
+      {/* Authors Table */}
+      <table class="table is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Serial No</th>
+            <th>Author</th>
+            <th>ORCID</th>
+            <th>Institution</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr></tr>
+        </tfoot>
+        <tbody>
+          {authorsList.map((a) => (
+            <tr>
+              <td>{a.name}</td>
+              <td>{a.email}</td>
+              <td>{a.orcid}</td>
+              <td>{a.institution}</td>
+              <td>
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Are you sure to delete author named ${a.name}?`
+                      )
+                    ) {
+                      setAuthorsList(
+                        authorsList.filter(function (el) {
+                          return el.orcid != a.orcid;
+                        })
+                      );
+                    }
+                  }}
+                  className="button is-danger is-round is-small"
+                >
+                  <FontAwesomeIcon color="white" icon={faRemove} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="block" />
+    </div>
+  );
+}
