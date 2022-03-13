@@ -27,11 +27,7 @@ function Header() {
       aria-label="main navigation"
     >
       <div className="navbar-brand">
-        <a
-          style={{ marginLeft: 15 }}
-          className="navbar-item"
-          href="https://bulma.io"
-        >
+        <a style={{ marginLeft: 15 }} className="navbar-item" href="/">
           <strong style={{ fontWeight: "700", fontSize: 24 }}>
             MANUSCRIPTOR
           </strong>

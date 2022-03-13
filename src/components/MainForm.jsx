@@ -19,15 +19,38 @@ import LoadingOverlay from "react-loading-overlay";
 import { useAuth } from "../contexts/AuthContext";
 
 function MainForm() {
-  const [forms, setForms] = useState(
-    new Array(4).fill({
+  let navigate = useNavigate();
+
+  const [submissionType, setSubmissionType] = useState("asd");
+
+  const [forms, setForms] = useState([
+    {
+      data: {
+        title: "",
+        abstract: "",
+        addMaterial: "",
+      },
+      errors: null,
+      isCompleted: false,
+    },
+    {
       data: {},
       errors: null,
-      isCompleted: true,
-    })
-  );
+      isCompleted: false,
+    },
+    {
+      data: {},
+      errors: null,
+      isCompleted: false,
+    },
+    {
+      data: {},
+      errors: null,
+      isCompleted: false,
+    },
+  ]);
 
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
 
   const decideStepperButtonColor = (i) => {
     return forms[i].isCompleted
@@ -84,7 +107,7 @@ function MainForm() {
     },
   ]);
 
-  const onInputChange = (e) => {
+  const onInputChangeAuthor = (e) => {
     setAuthor({ ...author, [e.target.name]: e.target.value });
   };
 
@@ -114,11 +137,74 @@ function MainForm() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const addErrorsToFormsState = (errs, step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: errs,
+    };
+    setForms([...forms]);
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const setErrorsToNull = (step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: null,
+      isCompleted: true,
+    };
+    setForms([...forms]);
+
+    setStep(step + 1);
+  };
+
   async function handleSubmission(e) {
     e.preventDefault();
 
-    setStep(step !== 4 && step + 1);
+    // Check for errs
+
+    if (step !== 4) {
+      let errs = [];
+
+      switch (step) {
+        case 1:
+          if (forms[0].data.title < 50) {
+            errs.push("Title should be of minimum 50 characters");
+          }
+          if (forms[0].data.abstract < 500) {
+            errs.push("Abstract should be of minimum 500 characters");
+          }
+          if (addedKeywords.length < 3) {
+            errs.push("There should be minimum 3 keywords");
+          }
+          if (errs.length != 0) {
+            addErrorsToFormsState(errs, step);
+          } else {
+            setErrorsToNull(step);
+          }
+          break;
+
+        default:
+          break;
+      }
+    } else {
+      //submit paper
+    }
   }
+
+  const handleInputs = (e, step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      data: {
+        ...forms[step - 1].data,
+        [e.target.name]: e.target.value,
+      },
+    };
+    setForms([...forms]);
+  };
 
   const renderStepperButton = (title, color, icon, stp) => (
     <div
@@ -133,6 +219,7 @@ function MainForm() {
       <button
         style={{
           width: 30,
+          cursor: "pointer",
           height: 30,
           borderRadius: "50%",
           textAlign: "center",
@@ -182,6 +269,29 @@ function MainForm() {
     return date;
   };
 
+  // Form 3 states
+  const [toggleFundingModal, setToggleFundingModal] = useState(false);
+
+  const [funder, setFunder] = useState({
+    findfunder: "",
+    grantrecep: "",
+    awardnumber: 0,
+  });
+
+  const [fundersList, setFundersList] = useState([
+    {
+      findfunder: "Ahmed",
+      grantrecep: "Mudud",
+      awardnumber: 12345,
+    },
+  ]);
+
+  const onInputChangeFunder = (e) => {
+    setFunder({ ...funder, [e.target.name]: e.target.value });
+  };
+
+  ////////////---------///////////
+
   const renderFormBody = (step) => {
     switch (step) {
       case 1:
@@ -191,26 +301,61 @@ function MainForm() {
               <label className="label">
                 Title <span style={{ color: "red" }}>*</span>
               </label>
+              {forms[step - 1].data.title.length < 50 ? (
+                <span
+                  style={{
+                    backgroundColor: "red",
+                    color: "#fff",
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    borderRadius: 5,
+                  }}
+                >
+                  Title should be of minimum 50 characters
+                </span>
+              ) : (
+                <span
+                  style={{
+                    backgroundColor: "green",
+                    color: "#fff",
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    borderRadius: 5,
+                  }}
+                >
+                  Your title is fine!
+                </span>
+              )}
 
-              <span
-                style={{
-                  backgroundColor: "red",
-                  color: "#fff",
-                  paddingLeft: 4,
-                  paddingRight: 4,
-                  borderRadius: 5,
-                }}
-              >
-                Title should be of minimum 20 words
-              </span>
-              <p className="control">
-                <textarea
-                  className="textarea is-danger"
-                  type="text"
-                  placeholder="Title"
-                  rows="4"
-                />
-              </p>
+              {forms[step - 1].data.title.length < 50 ? (
+                <p className="control">
+                  <textarea
+                    className="textarea is-danger"
+                    type="text"
+                    placeholder="Title"
+                    rows="4"
+                    name="title"
+                    value={forms[step - 1].data.title}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                </p>
+              ) : (
+                <p className="control">
+                  <textarea
+                    className="textarea is-success"
+                    type="text"
+                    placeholder="Title"
+                    rows="4"
+                    name="title"
+                    value={forms[step - 1].data.title}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                </p>
+              )}
             </div>
 
             {/* ABSTRACT */}
@@ -219,25 +364,61 @@ function MainForm() {
                 Abstract <span style={{ color: "red" }}>*</span>
               </label>
 
-              <span
-                style={{
-                  backgroundColor: "red",
-                  color: "#fff",
-                  paddingLeft: 4,
-                  paddingRight: 4,
-                  borderRadius: 5,
-                }}
-              >
-                Abstract should be of minimum 250 words
-              </span>
-              <p className="control">
-                <textarea
-                  className="textarea is-danger"
-                  type="text"
-                  placeholder="Abstract"
-                  rows="8"
-                />
-              </p>
+              {forms[step - 1].data.abstract.length < 500 ? (
+                <span
+                  style={{
+                    backgroundColor: "red",
+                    color: "#fff",
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    borderRadius: 5,
+                  }}
+                >
+                  Abstract should be of minimum 500 characters
+                </span>
+              ) : (
+                <span
+                  style={{
+                    backgroundColor: "green",
+                    color: "#fff",
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    borderRadius: 5,
+                  }}
+                >
+                  Your Abstract is fine!
+                </span>
+              )}
+
+              {forms[step - 1].data.abstract.length < 500 ? (
+                <p className="control">
+                  <textarea
+                    className="textarea is-danger"
+                    type="text"
+                    placeholder="Abstract"
+                    rows="8"
+                    name="abstract"
+                    value={forms[step - 1].data.abstract}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                </p>
+              ) : (
+                <p className="control">
+                  <textarea
+                    className="textarea is-success"
+                    type="text"
+                    placeholder="Abstract"
+                    rows="8"
+                    name="abstract"
+                    value={forms[step - 1].data.abstract}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                </p>
+              )}
             </div>
 
             {/* Additional Material */}
@@ -250,6 +431,11 @@ function MainForm() {
                   type="text"
                   placeholder="Additional Material"
                   rows="3"
+                  name="addMaterial"
+                  value={forms[step - 1].data.addMaterial}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
                 />
               </p>
             </div>
@@ -258,9 +444,13 @@ function MainForm() {
             <label className="label">
               Keywords<span style={{ color: "red" }}>*</span>
             </label>
+
             <span
               style={{
-                backgroundColor: "red",
+                backgroundColor:
+                  addedKeywords.length < 3 || addedKeywords.length > 5
+                    ? "red"
+                    : "green",
                 color: "#fff",
                 paddingLeft: 4,
                 paddingRight: 4,
@@ -316,7 +506,7 @@ function MainForm() {
                   className="button is-info"
                 >
                   <FontAwesomeIcon icon={faAdd} />
-                  <span style={{ marginLeft: 5 }}>Add</span>
+                  <span style={{ marginLeft: 5 }}>Add Keyword</span>
                 </button>
               </div>
             </div>
@@ -370,17 +560,19 @@ function MainForm() {
             <div className="block" />
 
             {/* Add Author  */}
-            <label className="label">
-              Authors<span style={{ color: "red" }}>*</span>
-            </label>
+            <label className="label">Authors</label>
             {/* Modals */}
             {toggleAuthorModal && (
               <div className="modal is-active is-clipped">
                 <div className="modal-background"></div>
                 <div className="modal-card">
-                  <header className="modal-card-head">
-                    <p className="modal-card-title">Modal title</p>
-                    <button className="delete" aria-label="close"></button>
+                  <header className="modal-card-head px-6">
+                    <p className="modal-card-title">Add Author</p>
+                    <button
+                      onClick={() => setToggleAuthorModal(false)}
+                      className="delete"
+                      aria-label="close"
+                    ></button>
                   </header>
                   <section className="modal-card-body">
                     <div className="field is-horizontal">
@@ -397,7 +589,7 @@ function MainForm() {
                               placeholder="Name"
                               name="name"
                               value={author.name}
-                              onChange={onInputChange}
+                              onChange={onInputChangeAuthor}
                             />
                           </div>
                         </div>
@@ -417,7 +609,7 @@ function MainForm() {
                               placeholder="Email"
                               name="email"
                               value={author.email}
-                              onChange={onInputChange}
+                              onChange={onInputChangeAuthor}
                             />
                           </div>
                         </div>
@@ -437,7 +629,7 @@ function MainForm() {
                               placeholder="ORCID with dashes"
                               name="orcid"
                               value={author.orcid}
-                              onChange={onInputChange}
+                              onChange={onInputChangeAuthor}
                             />
                           </div>
                         </div>
@@ -457,7 +649,7 @@ function MainForm() {
                               placeholder="Institution"
                               name="institution"
                               value={author.institution}
-                              onChange={onInputChange}
+                              onChange={onInputChangeAuthor}
                             />
                           </div>
                         </div>
@@ -513,6 +705,9 @@ function MainForm() {
                 <tr></tr>
               </tfoot>
               <tbody>
+                {authorsList.length == 0 && (
+                  <td className="has-text-centered">No Authors added</td>
+                )}
                 {authorsList.map((a) => (
                   <tr>
                     <td>{a.name}</td>
@@ -729,6 +924,9 @@ function MainForm() {
               </thead>
 
               <tbody>
+                {/* {fundersList.length == 0 && (
+                  <td className="has-text-centered">No funders added</td>
+                )} */}
                 <tr>
                   <td>Screenshot from 2022-03-11 11-28-19.png</td>
                   <td>Title Page</td>
@@ -759,7 +957,223 @@ function MainForm() {
           </div>
         );
       case 3:
-        return <></>;
+        return (
+          <div className="form3">
+            {/* Cover Letter */}
+            <div className="field">
+              <label className="label">
+                Cover Letter <span style={{ color: "red" }}>*</span>
+              </label>
+
+              <p className="control">
+                <textarea
+                  className="textarea is-danger"
+                  type="text"
+                  placeholder="Cover Letter"
+                  rows="5"
+                />
+              </p>
+            </div>
+
+            {/* Funding */}
+
+            {/* Add Funding  */}
+            <label className="label">
+              Add Funding<span style={{ color: "red" }}>*</span>
+            </label>
+            {/* Modals */}
+            {toggleFundingModal && (
+              <div className="modal is-active is-clipped">
+                <div className="modal-background"></div>
+                <div className="modal-card">
+                  <header className="modal-card-head px-6">
+                    <p className="modal-card-title">Add Funding</p>
+                    <button
+                      onClick={() => setToggleFundingModal(false)}
+                      className="delete"
+                      aria-label="close"
+                    ></button>
+                  </header>
+                  <section className="modal-card-body">
+                    <div className="field is-horizontal">
+                      {/* Find a Funder */}
+                      <div className="field-label is-normal">
+                        <label className="label">Find a Funder</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Find a Funder"
+                              name="findfunder"
+                              value={funder.findfunder}
+                              onChange={onInputChangeFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Award Number */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Award Number </label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="number"
+                              placeholder="Award Number "
+                              name="awardnumber"
+                              value={funder.awardnumber}
+                              onChange={onInputChangeFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Grant Recepient  */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Grant Recepient</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Grant Recepient"
+                              name="grantrecep"
+                              value={funder.grantrecep}
+                              onChange={onInputChangeFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <footer className="modal-card-foot">
+                    <button
+                      onClick={() => {
+                        fundersList.push(funder);
+                        setFundersList(fundersList);
+                        setToggleFundingModal(false);
+                      }}
+                      className="button is-info"
+                    >
+                      Add Funder
+                    </button>
+                    <button
+                      onClick={() => setToggleFundingModal(false)}
+                      className="button"
+                    >
+                      Cancel
+                    </button>
+                  </footer>
+                </div>
+              </div>
+            )}
+
+            {/* Author Button */}
+            <div className="field">
+              <button
+                onClick={() => setToggleFundingModal(true)}
+                className="button is-info"
+              >
+                <FontAwesomeIcon icon={faAdd} />
+                <span style={{ marginLeft: 5 }}>Add Funder</span>
+              </button>
+            </div>
+            <div className="block" />
+
+            {/* Authors Table */}
+            <table className="table is-striped is-hoverable">
+              <thead>
+                <tr>
+                  <th>Funder</th>
+                  <th>Award Number</th>
+                  <th>Grant Recepient</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr></tr>
+              </tfoot>
+              <tbody>
+                {fundersList.length == 0 && (
+                  <td className="has-text-centered">No funders added</td>
+                )}
+                {fundersList.map((f) => (
+                  <tr>
+                    <td>{f.findfunder}</td>
+                    <td>{f.awardnumber}</td>
+                    <td>{f.grantrecep}</td>
+                    <td>
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Are you sure to delete funder named ${f.findfunder}?`
+                            )
+                          ) {
+                            setFundersList(
+                              fundersList.filter(function (el) {
+                                return el.awardnumber != f.awardnumber;
+                              })
+                            );
+                          }
+                        }}
+                        className="button is-danger is-round is-small"
+                      >
+                        <FontAwesomeIcon color="white" icon={faRemove} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="block" />
+
+            {/* Cofirmation */}
+            <div className="field">
+              <label className="label">
+                <strong>Confirm the following:</strong>
+              </label>
+              <div className="block" />
+
+              <label class="checkbox">
+                <input type="checkbox" />
+                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                Confirm that the manuscript has been submitted solely to this
+                journal and is not published, in press, or submitted elsewhere.
+              </label>
+              <div className="block" />
+
+              <label class="checkbox">
+                <input type="checkbox" />
+                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                Confirm that all the research meets the ethical guidelines,
+                including adherence to the legal requirements of the study
+                country.
+              </label>
+              <div className="block" />
+
+              <label class="checkbox">
+                <input type="checkbox" />
+                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                Confirm that you have prepared a complete text within the
+                anonymous article file. Any identifying information has been
+                included separately in a title page, acknowledgements or
+                supplementary file not for review, to allow blinded review.
+              </label>
+            </div>
+            <div className="block" />
+          </div>
+        );
       case 4:
         return <></>;
     }
@@ -781,79 +1195,155 @@ function MainForm() {
             padding: 35,
             border: "1px solid #ccc",
             borderRadius: 20,
+            paddingBottom: submissionType == "" ? 200 : 20,
           }}
         >
           <div className="title">Submission</div>
 
-          {/* Stepper*/}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-around",
-              alignItems: "center",
-              position: "relative",
-              marginTop: 5,
-              marginBottom: 30,
-            }}
-          >
-            {renderStepperButton(
-              "Metadata",
-              decideStepperButtonColor(0),
-              decideStepperButtonIcon(0),
-              1
-            )}
-            {renderStepperButton(
-              "Upload Files",
-              decideStepperButtonColor(1),
-              decideStepperButtonIcon(1),
-              2
-            )}
-            {renderStepperButton(
-              "Details & Comments",
-              decideStepperButtonColor(2),
-              decideStepperButtonIcon(2),
-              3
-            )}
-            {renderStepperButton(
-              "Review Your Submission",
-              decideStepperButtonColor(3),
-              decideStepperButtonIcon(3),
-              4
-            )}
+          {/* Submission Category */}
+          {submissionType == "" ? (
+            <>
+              <div className="subtitle">
+                Please choose a category for your paper.
+              </div>
+              <div className="select">
+                <select
+                  value={submissionType}
+                  onChange={(e) => {
+                    if (e.target.value == "Select Submission Type") {
+                      setSubmissionType("");
+                    } else {
+                      setSubmissionType(e.target.value);
+                    }
+                  }}
+                  disabled={submissionType != "" ? true : false}
+                >
+                  <option>Select Submission Type</option>
+                  <option>Case Study</option>
+                  <option>Research Paper</option>
+                  <option>Technical Paper</option>
+                  <option>Select Submission Type</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Stepper*/}
+              <div className="subtitle">{submissionType}</div>
 
-            <div
-              style={{
-                width: "75%",
-                height: 4,
-                backgroundColor: "#000",
-                position: "absolute",
-                top: "25%",
-                zIndex: 0,
-              }}
-            />
-          </div>
-          {error.length > 0 && (
-            <div className="notification is-danger is-light">{error}</div>
+              {/* Errors Notification */}
+              {forms[step - 1].errors != null && (
+                <div class="notification is-danger is-light pl-6">
+                  <div className="subtitle">Errors:</div>
+                  <ul style={{ listStyleType: "disc" }}>
+                    {forms[step - 1].errors.map((e) => (
+                      <li>
+                        <strong>{e}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-around",
+                  alignItems: "center",
+                  position: "relative",
+                  marginTop: 5,
+                  marginBottom: 30,
+                }}
+              >
+                {renderStepperButton(
+                  "Metadata",
+                  decideStepperButtonColor(0),
+                  decideStepperButtonIcon(0),
+                  1
+                )}
+                {renderStepperButton(
+                  "Upload Files",
+                  decideStepperButtonColor(1),
+                  decideStepperButtonIcon(1),
+                  2
+                )}
+                {renderStepperButton(
+                  "Details & Comments",
+                  decideStepperButtonColor(2),
+                  decideStepperButtonIcon(2),
+                  3
+                )}
+                {renderStepperButton(
+                  "Review Your Submission",
+                  decideStepperButtonColor(3),
+                  decideStepperButtonIcon(3),
+                  4
+                )}
+
+                <div
+                  style={{
+                    width: "75%",
+                    height: 4,
+                    backgroundColor: "#000",
+                    position: "absolute",
+                    top: "25%",
+                    zIndex: 0,
+                  }}
+                />
+              </div>
+              {error.length > 0 && (
+                <div className="notification is-danger is-light">{error}</div>
+              )}
+
+              {renderFormBody(step)}
+              <div className="block" />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  marginTop: 35,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Are you sure to leave? Entered data will be lost!`
+                      )
+                    ) {
+                      navigate("/");
+                    }
+                  }}
+                  className="button is-light"
+                >
+                  Cancel
+                </button>
+                <button
+                  style={{ marginLeft: 5 }}
+                  onClick={() => {
+                    if (
+                      window.confirm(`Are you sure to leave and save data?`)
+                    ) {
+                      navigate("/");
+                    }
+                  }}
+                  className="button is-info is-light"
+                >
+                  Save Progress & Leave
+                </button>
+                <button
+                  style={{ marginLeft: 5 }}
+                  onClick={handleSubmission}
+                  disabled={loading}
+                  className="button is-info is-right"
+                >
+                  {step == 4 ? "Submit Paper" : "Next"}
+                </button>
+              </div>
+            </>
           )}
-
-          {renderFormBody(step)}
-          <div className="block" />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-            }}
-          >
-            <button
-              onClick={handleSubmission}
-              disabled={loading}
-              className="button is-info is-right"
-            >
-              {step == 3 ? "Register" : "Next"}
-            </button>
-          </div>
         </div>
       </LoadingOverlay>
     </>
