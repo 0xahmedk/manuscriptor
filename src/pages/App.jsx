@@ -2,7 +2,7 @@ import React from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WelcomePage from "./WelcomePage";
-import { AuthProvider } from "../contexts/AuthContext";
+import { FirebaseProvider } from "../contexts/FirebaseContext";
 
 import "bulma/css/bulma.css";
 import "@fortawesome/fontawesome-svg-core";
@@ -12,11 +12,11 @@ import "@fortawesome/react-fontawesome";
 function App() {
   return (
     <div>
-      <AuthProvider>
+      <FirebaseProvider>
         <Header />
         <WelcomePage />
         <Footer />
-      </AuthProvider>
+      </FirebaseProvider>
     </div>
   );
 }

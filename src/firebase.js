@@ -8,6 +8,8 @@ import {
   //   doc,
 } from "firebase/firestore";
 
+import { getStorage, ref } from "firebase/storage";
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -33,12 +35,16 @@ const db = getFirestore();
 
 const auth = getAuth();
 
+const storage = getStorage(app);
+
 export {
   auth,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
+  storage,
+  ref,
 };
 
 // const colRef = collection()

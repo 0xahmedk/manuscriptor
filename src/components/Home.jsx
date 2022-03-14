@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/FirebaseContext";
 
 function Home() {
   const [error, setError] = useState("");
@@ -10,10 +10,6 @@ function Home() {
   const queryString = window.location.search;
 
   const urlParams = new URLSearchParams(queryString);
-
-  const page_type = urlParams.get("page_type");
-
-  console.log(page_type);
 
   return (
     <div className="container">
@@ -25,6 +21,9 @@ function Home() {
           <div className="hero-body">
             {currentUser ? (
               <div className="">
+                <img src={urlParams.get("logo")} alt="" srcset="" />
+                <div>{urlParams.get("name")}</div>
+                <div>{urlParams.get("details")}</div>
                 <p className="title">
                   You are all set now with your account you can start submission
                   now by clicking button below

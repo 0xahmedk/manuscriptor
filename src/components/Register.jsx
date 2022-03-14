@@ -12,7 +12,7 @@ import {
 
 import { countries } from "../modules/countries";
 import { universities } from "../modules/universities";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/FirebaseContext";
 
 function Register() {
   const [viewPassword, setViewPassword] = useState(false);

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
 
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/FirebaseContext";
 
 function Login() {
   const [viewPassword, setViewPassword] = useState(false);

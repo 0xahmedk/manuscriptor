@@ -16,7 +16,9 @@ import {
 import CreatableSelect from "react-select/creatable";
 import LoadingOverlay from "react-loading-overlay";
 
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/FirebaseContext";
+import FileUploadTester from "./FileUploadTester";
+import ReviewAndSubmit from "./ReviewAndSubmit";
 
 function MainForm() {
   let navigate = useNavigate();
@@ -50,7 +52,7 @@ function MainForm() {
     },
   ]);
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(4);
 
   const decideStepperButtonColor = (i) => {
     return forms[i].isCompleted
@@ -141,6 +143,7 @@ function MainForm() {
     forms[step - 1] = {
       ...forms[step - 1],
       errors: errs,
+      isCompleted: false,
     };
     setForms([...forms]);
     window.scrollTo({
@@ -179,6 +182,34 @@ function MainForm() {
           }
           if (addedKeywords.length < 3) {
             errs.push("There should be minimum 3 keywords");
+          }
+          if (errs.length != 0) {
+            addErrorsToFormsState(errs, step);
+          } else {
+            setErrorsToNull(step);
+          }
+          break;
+        case 2:
+          for (const f of filesSelected) {
+            if (f == "") {
+              errs.push("Please Upload at least 4 files!");
+              break;
+            }
+          }
+          if (errs.length != 0) {
+            addErrorsToFormsState(errs, step);
+          } else {
+            setErrorsToNull(step);
+          }
+          break;
+        case 3:
+          if (coverLetter == "") {
+            errs.push("Please write the cover the letter!");
+          }
+          if (!(isConfirmed1 && isConfirmed2 && isConfirmed3)) {
+            errs.push(
+              "Please check all the confirmation statements given below!"
+            );
           }
           if (errs.length != 0) {
             addErrorsToFormsState(errs, step);
@@ -253,6 +284,42 @@ function MainForm() {
     return true;
   };
 
+  const [progress, setProgress] = useState(0);
+  const [url, setURL] = useState("");
+
+  const handleFiles = (e) => {
+    e.preventDefault();
+
+    let files = [];
+    if (e.target.name === "resume") {
+      console.log(e.target.file);
+    }
+  };
+
+  // const uploadFile = (file) => {
+  //   if (!file) return;
+
+  //   const storageRef = ref(storage, `/files/${file.name}`);
+  //   const uploadTask = uploadBytesResumable(storageRef, file);
+
+  //   uploadTask.on(
+  //     "state_changed",
+  //     (snapshot) => {
+  //       const prog = Math.round(
+  //         (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+  //       );
+  //       setProgress(prog);
+  //     },
+  //     (err) => console.log(err),
+  //     () => {
+  //       getDownloadURL(uploadTask.snapshot.ref).then((u) => setURL(u));
+  //       console.log(url);
+  //     }
+  //   );
+
+  //   return { url, progress };
+  // };
+
   const getFormattedTimeDate = () => {
     var today = new Date();
     var date =
@@ -285,6 +352,12 @@ function MainForm() {
       awardnumber: 12345,
     },
   ]);
+
+  const [coverLetter, setCoverLetter] = useState("");
+
+  const [isConfirmed1, setIsConfirmed1] = useState(false);
+  const [isConfirmed2, setIsConfirmed2] = useState(false);
+  const [isConfirmed3, setIsConfirmed3] = useState(false);
 
   const onInputChangeFunder = (e) => {
     setFunder({ ...funder, [e.target.name]: e.target.value });
@@ -709,7 +782,7 @@ function MainForm() {
                   <td className="has-text-centered">No Authors added</td>
                 )}
                 {authorsList.map((a) => (
-                  <tr>
+                  <tr key={a.orcid}>
                     <td>{a.name}</td>
                     <td>{a.email}</td>
                     <td>{a.orcid}</td>
@@ -748,155 +821,158 @@ function MainForm() {
             {/* Upload Files */}
 
             {/* Pick Files */}
-            <label className="label">
-              Pick Files<span style={{ color: "red" }}>*</span>
-            </label>
-            <table className="table is-striped is-hoverable">
-              <thead>
-                <tr>
-                  <th>File Type</th>
-                  <th>File</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filesSelected.map((_, i) => (
-                  <tr key={i}>
-                    <td>
-                      <div className="select">
-                        <select
-                          value={fileTypeSelect[i]}
-                          onChange={(e) => {
-                            if (e.target.value == "Select File Type") {
-                              fileTypeSelect[i] = "";
-                              setFileTypeSelect([...fileTypeSelect]);
-                            } else {
-                              fileTypeSelect[i] = e.target.value;
-                              setFileTypeSelect([...fileTypeSelect]);
-                            }
-                          }}
-                          disabled={filesSelected[i] != "" ? true : false}
-                        >
-                          <option>Select File Type</option>
-                          <option value="Title Page">Title Page</option>
-                          <option>Article File</option>
-                          <option>Figure</option>
-                          <option>Table</option>
-                          <option>Author Biography</option>
-                          <option>Suplementary File not for Review</option>
-                        </select>
-                      </div>
-                    </td>
-                    <td>
-                      {fileTypeSelect[i] != "" &&
-                        (filesSelected[i] == "" ? (
-                          <div className="file has-name">
-                            <label className="file-label">
-                              <input
-                                className="file-input"
-                                type="file"
-                                name="resume"
-                                accept=".*"
-                                value={filesSelected[i]}
-                                onChange={(e) => {
-                                  filesSelected[i] = e.target.value;
-                                  setFilesSelected([...filesSelected]);
-                                }}
-                              />
-                              <span className="file-cta">
-                                <span className="file-icon">
-                                  <FontAwesomeIcon
-                                    color="black"
-                                    icon={faUpload}
-                                  />
-                                </span>
-                                <span className="file-label">
-                                  Choose a file…
-                                </span>
-                              </span>
-                              <span className="file-name">
-                                {filesSelected[i]}
-                              </span>
-                            </label>
-                          </div>
-                        ) : (
-                          <div className="file has-name is-success">
-                            <label className="file-label">
-                              <input
-                                className="file-input"
-                                type="file"
-                                name="resume"
-                                accept=".*"
-                                value={filesSelected[i]}
-                                onChange={(e) => {
-                                  filesSelected[i] = e.target.value;
-                                  setFilesSelected([...filesSelected]);
-                                }}
-                              />
-                              <span className="file-cta">
-                                <span className="file-icon">
-                                  <FontAwesomeIcon
-                                    color="white"
-                                    icon={faUpload}
-                                  />
-                                </span>
-                                <span className="file-label">Change file…</span>
-                              </span>
-                              <span className="file-name">
-                                {filesSelected[i]}
-                              </span>
-                            </label>
-                          </div>
-                        ))}
-                    </td>
-                    <td>
-                      {filesSelected[i] != "" && (
-                        <button
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Are you sure to reomve file named ${filesSelected[i]}?`
-                              )
-                            ) {
-                              filesSelected[i] = "";
-                              setFileTypeSelect[i] = "";
-                              setFilesSelected([...filesSelected]);
-                            }
-                          }}
-                          className="button is-danger is-round is-small"
-                        >
-                          <FontAwesomeIcon color="white" icon={faRemove} />
-                        </button>
-                      )}
-                    </td>
+            <form onSubmit={handleFiles}>
+              <label className="label">
+                Pick Files<span style={{ color: "red" }}>*</span>
+              </label>
+              <table className="table is-striped is-hoverable">
+                <thead>
+                  <tr>
+                    <th>File Type</th>
+                    <th>File</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
 
-            {/* Upload Button */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                disabled={checkIfAllFilesSelected() ? false : true}
-                className="button is-info"
-                onClick={() => {
-                  setFileUploadLoading(true);
+                <tbody>
+                  {filesSelected.map((_, i) => (
+                    <tr key={i}>
+                      <td>
+                        <div className="select">
+                          <select
+                            value={fileTypeSelect[i]}
+                            onChange={(e) => {
+                              if (e.target.value == "Select File Type") {
+                                fileTypeSelect[i] = "";
+                                setFileTypeSelect([...fileTypeSelect]);
+                              } else {
+                                fileTypeSelect[i] = e.target.value;
+                                setFileTypeSelect([...fileTypeSelect]);
+                              }
+                            }}
+                            disabled={filesSelected[i] != "" ? true : false}
+                          >
+                            <option>Select File Type</option>
+                            <option value="Title Page">Title Page</option>
+                            <option>Article File</option>
+                            <option>Figure</option>
+                            <option>Table</option>
+                            <option>Author Biography</option>
+                            <option>Suplementary File not for Review</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td>
+                        {fileTypeSelect[i] != "" &&
+                          (filesSelected[i] == "" ? (
+                            <div className="file has-name">
+                              <label className="file-label">
+                                <input
+                                  className="file-input"
+                                  type="file"
+                                  name="resume"
+                                  accept=".*"
+                                  value={filesSelected[i]}
+                                  onChange={(e) => {
+                                    filesSelected[i] = e.target.value;
+                                    setFilesSelected([...filesSelected]);
+                                  }}
+                                />
+                                <span className="file-cta">
+                                  <span className="file-icon">
+                                    <FontAwesomeIcon
+                                      color="black"
+                                      icon={faUpload}
+                                    />
+                                  </span>
+                                  <span className="file-label">
+                                    Choose a file…
+                                  </span>
+                                </span>
+                                <span className="file-name">
+                                  {filesSelected[i]}
+                                </span>
+                              </label>
+                            </div>
+                          ) : (
+                            <div className="file has-name is-success">
+                              <label className="file-label">
+                                <input
+                                  className="file-input"
+                                  type="file"
+                                  name="resume"
+                                  accept=".*"
+                                  value={filesSelected[i]}
+                                  onChange={(e) => {
+                                    console.log(e.target.files);
+                                    filesSelected[i] = e.target.value;
+                                    setFilesSelected([...filesSelected]);
+                                  }}
+                                />
+                                <span className="file-cta">
+                                  <span className="file-icon">
+                                    <FontAwesomeIcon
+                                      color="white"
+                                      icon={faUpload}
+                                    />
+                                  </span>
+                                  <span className="file-label">
+                                    Change file…
+                                  </span>
+                                </span>
+                                <span className="file-name">
+                                  {filesSelected[i]}
+                                </span>
+                              </label>
+                            </div>
+                          ))}
+                      </td>
+                      <td>
+                        {filesSelected[i] != "" && (
+                          <button
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `Are you sure to remove file named ${filesSelected[i]}?`
+                                )
+                              ) {
+                                filesSelected[i] = "";
+                                setFileTypeSelect[i] = "";
+                                setFilesSelected([...filesSelected]);
+                              }
+                            }}
+                            className="button is-danger is-round is-small"
+                          >
+                            <FontAwesomeIcon color="white" icon={faRemove} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Upload Button */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
                 }}
               >
-                <span className="icon is-small">
-                  <FontAwesomeIcon color="white" icon={faUpload} />
-                </span>
-                <span>Upload Selected Files</span>
-              </button>
-            </div>
-            <div className="block" />
+                <button
+                  disabled={checkIfAllFilesSelected() ? false : true}
+                  className="button is-info"
+                  type="submit"
+                >
+                  <span className="icon is-small">
+                    <FontAwesomeIcon color="white" icon={faUpload} />
+                  </span>
+                  <span>Upload Selected Files</span>
+                </button>
+              </div>
+              <div className="block" />
+            </form>
 
             {/* Uploaded Files Table */}
             <label className="label">
@@ -965,14 +1041,29 @@ function MainForm() {
                 Cover Letter <span style={{ color: "red" }}>*</span>
               </label>
 
-              <p className="control">
-                <textarea
-                  className="textarea is-danger"
-                  type="text"
-                  placeholder="Cover Letter"
-                  rows="5"
-                />
-              </p>
+              {coverLetter === "" ? (
+                <p className="control">
+                  <textarea
+                    className="textarea is-danger"
+                    type="text"
+                    placeholder="Cover Letter"
+                    rows="5"
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                  />
+                </p>
+              ) : (
+                <p className="control">
+                  <textarea
+                    className="textarea is-success"
+                    type="text"
+                    placeholder="Cover Letter"
+                    rows="5"
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                  />
+                </p>
+              )}
             </div>
 
             {/* Funding */}
@@ -1078,7 +1169,7 @@ function MainForm() {
               </div>
             )}
 
-            {/* Author Button */}
+            {/* Funders Button */}
             <div className="field">
               <button
                 onClick={() => setToggleFundingModal(true)}
@@ -1090,7 +1181,7 @@ function MainForm() {
             </div>
             <div className="block" />
 
-            {/* Authors Table */}
+            {/* Funders Table */}
             <table className="table is-striped is-hoverable">
               <thead>
                 <tr>
@@ -1146,7 +1237,11 @@ function MainForm() {
               <div className="block" />
 
               <label class="checkbox">
-                <input type="checkbox" />
+                <input
+                  checked={isConfirmed1}
+                  type="checkbox"
+                  onChange={() => setIsConfirmed1(!isConfirmed1)}
+                />
                 <span style={{ color: "red", marginLeft: 5 }}>*</span>
                 Confirm that the manuscript has been submitted solely to this
                 journal and is not published, in press, or submitted elsewhere.
@@ -1154,7 +1249,11 @@ function MainForm() {
               <div className="block" />
 
               <label class="checkbox">
-                <input type="checkbox" />
+                <input
+                  checked={isConfirmed2}
+                  type="checkbox"
+                  onChange={() => setIsConfirmed2(!isConfirmed2)}
+                />
                 <span style={{ color: "red", marginLeft: 5 }}>*</span>
                 Confirm that all the research meets the ethical guidelines,
                 including adherence to the legal requirements of the study
@@ -1163,7 +1262,11 @@ function MainForm() {
               <div className="block" />
 
               <label class="checkbox">
-                <input type="checkbox" />
+                <input
+                  checked={isConfirmed3}
+                  type="checkbox"
+                  onChange={() => setIsConfirmed3(!isConfirmed3)}
+                />
                 <span style={{ color: "red", marginLeft: 5 }}>*</span>
                 Confirm that you have prepared a complete text within the
                 anonymous article file. Any identifying information has been
@@ -1175,7 +1278,16 @@ function MainForm() {
           </div>
         );
       case 4:
-        return <></>;
+        return (
+          <ReviewAndSubmit
+            form1Data={forms[0].data}
+            addedKeywords={addedKeywords}
+            authorsList={authorsList}
+            filesSelected={filesSelected}
+            fundersList={fundersList}
+            coverLetter={coverLetter}
+          />
+        );
     }
   };
 
@@ -1230,7 +1342,7 @@ function MainForm() {
             <>
               {/* Stepper*/}
               <div className="subtitle">{submissionType}</div>
-
+              {/* <FileUploadTester /> */}
               {/* Errors Notification */}
               {forms[step - 1].errors != null && (
                 <div class="notification is-danger is-light pl-6">
