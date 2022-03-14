@@ -16,7 +16,7 @@ import { useAuth } from "../contexts/FirebaseContext";
 
 function Register() {
   const [viewPassword, setViewPassword] = useState(false);
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
 
   const [state, setState] = useState({
     email: "",
@@ -26,6 +26,178 @@ function Register() {
 
   const { email, password, cpassword } = state;
 
+  const [forms, setForms] = useState([
+    {
+      data: {
+        prefix: "",
+        firstName: "",
+        lastName: "",
+        degree: "",
+        institution: "",
+      },
+      errors: null,
+      isCompleted: false,
+    },
+    {
+      data: {
+        street: "",
+        zipcode: 0,
+        city: "",
+        country: "",
+      },
+      errors: null,
+      isCompleted: false,
+    },
+    {
+      data: {},
+      errors: null,
+      isCompleted: false,
+    },
+  ]);
+
+  const handleInputs = (e, step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      data: {
+        ...forms[step - 1].data,
+        [e.target.name]: e.target.value,
+      },
+    };
+    setForms([...forms]);
+  };
+
+  const decideStepperButtonColor = (i) => {
+    return forms[i].isCompleted
+      ? "green"
+      : forms[i].errors === null
+      ? "hsl(204, 86%, 53%)"
+      : "red";
+  };
+  const decideStepperButtonIcon = (i) => {
+    let icon;
+    if (forms[i].isCompleted) {
+      icon = faCheck;
+    } else {
+      if (forms[i].errors === null) {
+        switch (i + 1) {
+          case 1:
+            icon = fa1;
+            break;
+          case 2:
+            icon = fa2;
+            break;
+          case 3:
+            icon = fa3;
+            break;
+
+          default:
+            break;
+        }
+      } else {
+        icon = faXmark;
+      }
+    }
+    return icon;
+  };
+
+  const addErrorsToFormsState = (errs, step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: errs,
+      isCompleted: false,
+    };
+    setForms([...forms]);
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const setErrorsToNull = (step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: null,
+      isCompleted: true,
+    };
+    setForms([...forms]);
+
+    setStep(step + 1);
+  };
+
+  const setErrorsToTrue = (step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: {},
+    };
+    setForms([...forms]);
+  };
+
+  async function handleSubmission(e) {
+    e.preventDefault();
+
+    // Check for errs
+
+    if (step !== 3) {
+      let errs = [];
+      switch (step) {
+        case 1:
+          if (forms[0].data.prefix === "") {
+            errs.push("Please select a Prefix for your name");
+          }
+          if (forms[0].data.firstName === "") {
+            errs.push("Please enter your First Name");
+          }
+          if (forms[0].data.lastName === "") {
+            errs.push("Please enter your Last Name");
+          }
+          if (forms[0].data.institution === "") {
+            errs.push("Please enter your Institution");
+          }
+          if (errs.length != 0) {
+            addErrorsToFormsState(errs, step);
+          } else {
+            setErrorsToNull(step);
+          }
+          break;
+        case 2:
+          if (forms[1].data.city === "") {
+            errs.push("Please enter your City");
+          }
+          if (forms[1].data.country === "") {
+            errs.push("Please select a Country");
+          }
+          if (errs.length != 0) {
+            addErrorsToFormsState(errs, step);
+          } else {
+            setErrorsToNull(step);
+          }
+          break;
+        default:
+          break;
+      }
+    } else {
+      let errs = [];
+      if (!forms[0].isCompleted) {
+        errs.push("Please complete the Personal Information (Step 1) first ");
+        setErrorsToTrue(1);
+        addErrorsToFormsState(errs, step);
+        if (!forms[1].isCompleted) {
+          errs.push("Please complete the Address Information (Step 2) first");
+          setErrorsToTrue(2);
+          addErrorsToFormsState(errs, step);
+          return;
+        }
+        return;
+      }
+
+      setErrorsToNull(step);
+
+      //Register
+      handleRegister();
+    }
+  }
+
   const { signup } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -33,8 +205,7 @@ function Register() {
 
   let navigate = useNavigate();
 
-  async function handleRegister(e) {
-    e.preventDefault();
+  async function handleRegister() {
     setSuccess(false);
 
     if (password !== cpassword) {
@@ -52,7 +223,7 @@ function Register() {
         setSuccess(true);
         setTimeout(() => {
           navigate("/login");
-        }, 2000);
+        }, 5000);
       });
     } catch (err) {
       switch (err.code) {
@@ -92,10 +263,18 @@ function Register() {
       <button
         style={{
           width: 30,
+          cursor: "pointer",
           height: 30,
           borderRadius: "50%",
           textAlign: "center",
-          backgroundColor: stp == step ? color : "#777",
+          backgroundColor:
+            stp == step
+              ? "hsl(204, 86%, 53%)"
+              : forms[stp - 1].isCompleted
+              ? "green"
+              : color === "red"
+              ? color
+              : "#777",
           marginBottom: 5,
         }}
         onClick={() => setStep(stp)}
@@ -112,15 +291,62 @@ function Register() {
         return (
           <>
             <div className="field">
-              <div className="select">
-                <select>
-                  <option>Select Prefix</option>
-                  <option>Mr.</option>
-                  <option>Ms.</option>
-                  <option>Dr.</option>
-                  <option>Prof.</option>
-                </select>
-              </div>
+              {forms[step - 1].data.prefix !== "" ? (
+                <div className="select is-success">
+                  <select
+                    name="prefix"
+                    value={forms[step - 1].data.prefix}
+                    onChange={(e) => {
+                      if (e.target.value == "Select Prefix") {
+                        forms[step - 1] = {
+                          ...forms[step - 1],
+                          data: {
+                            ...forms[step - 1].data,
+                            prefix: "",
+                          },
+                        };
+                        setForms([...forms]);
+                      } else {
+                        handleInputs(e, step);
+                      }
+                    }}
+                  >
+                    <option>Select Prefix</option>
+                    <option>Mr.</option>
+                    <option>Ms.</option>
+                    <option>Dr.</option>
+                    <option>Prof.</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="select is-danger">
+                  <select
+                    name="prefix"
+                    value={forms[step - 1].data.prefix}
+                    onChange={(e) => {
+                      if (e.target.value == "Select Prefix") {
+                        forms[step - 1] = {
+                          ...forms[step - 1],
+                          data: {
+                            ...forms[step - 1].data,
+                            prefix: "",
+                          },
+                        };
+                        setForms([...forms]);
+                      } else {
+                        handleInputs(e, step);
+                      }
+                    }}
+                  >
+                    <option>Select Prefix</option>
+                    <option>Mr.</option>
+                    <option>Ms.</option>
+                    <option>Dr.</option>
+                    <option>Prof.</option>
+                  </select>
+                </div>
+              )}
+
               {"  "}
               <span style={{ color: "red" }}>*</span>
             </div>
@@ -135,6 +361,11 @@ function Register() {
                       className="input"
                       type="text"
                       placeholder="First Name"
+                      name="firstName"
+                      value={forms[step - 1].data.firstName}
+                      onChange={(e) => {
+                        handleInputs(e, step);
+                      }}
                     />
                   </p>
                 </div>
@@ -149,6 +380,11 @@ function Register() {
                       className="input"
                       type="text"
                       placeholder="Last Name"
+                      name="lastName"
+                      value={forms[step - 1].data.lastName}
+                      onChange={(e) => {
+                        handleInputs(e, step);
+                      }}
                     />
                   </p>
                 </div>
@@ -158,23 +394,49 @@ function Register() {
             <div className="field">
               <label className="label">Degree</label>
               <p className="control">
-                <input className="input" type="text" placeholder="Degree" />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Degree"
+                  name="degree"
+                  value={forms[step - 1].data.degree}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
               </p>
             </div>
 
             <div className="field">
               <label className="label">
-                Email <span style={{ color: "red" }}>*</span>{" "}
+                Institution <span style={{ color: "red" }}>*</span>{" "}
               </label>
-              <p className="control">
-                <input className="input" type="email" placeholder="Email" />
-              </p>
-            </div>
-
-            <div className="field">
-              <p className="control is-expanded">
-                <button className="button is-info">Next</button>
-              </p>
+              <div class="select">
+                <select
+                  name="institution"
+                  value={forms[step - 1].data.institution}
+                  onChange={(e) => {
+                    if (e.target.value == "Select Institution") {
+                      forms[step - 1] = {
+                        ...forms[step - 1],
+                        data: {
+                          ...forms[step - 1].data,
+                          prefix: "",
+                        },
+                      };
+                      setForms([...forms]);
+                    } else {
+                      handleInputs(e, step);
+                    }
+                  }}
+                >
+                  <option>Select Institution</option>
+                  <option>Islamic</option>
+                  <option>FAST</option>
+                  <option>COMSATS</option>
+                  <option>Air</option>
+                </select>
+              </div>
             </div>
           </>
         );
@@ -191,6 +453,11 @@ function Register() {
                   className="input"
                   type="number"
                   placeholder="Street No"
+                  name="street"
+                  value={forms[step - 1].data.street}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
                 />
               </p>
             </div>
@@ -199,7 +466,16 @@ function Register() {
                 ZipCode <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
-                <input className="input" type="number" placeholder="Zip Code" />
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Zip Code"
+                  name="zipcode"
+                  value={forms[step - 1].data.zipcode}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
               </p>
             </div>
             <div className="field">
@@ -207,7 +483,16 @@ function Register() {
                 City <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <p className="control">
-                <input className="input" type="text" placeholder="City" />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="City"
+                  name="city"
+                  value={forms[step - 1].data.city}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
               </p>
             </div>
 
@@ -216,7 +501,24 @@ function Register() {
                 Country <span style={{ color: "red" }}>*</span>{" "}
               </label>
               <div class="select">
-                <select>
+                <select
+                  name="country"
+                  value={forms[step - 1].data.country}
+                  onChange={(e) => {
+                    if (e.target.value == "Select Country") {
+                      forms[step - 1] = {
+                        ...forms[step - 1],
+                        data: {
+                          ...forms[step - 1].data,
+                          prefix: "",
+                        },
+                      };
+                      setForms([...forms]);
+                    } else {
+                      handleInputs(e, step);
+                    }
+                  }}
+                >
                   <option>Select Country</option>
                   {countries.map((c) => (
                     <option>{c}</option>
@@ -296,6 +598,25 @@ function Register() {
       <div className="title">Register</div>
 
       {/* Stepper*/}
+      {/* Errors Notification */}
+      {forms[step - 1].errors !== null && (
+        <>
+          {forms[step - 1].errors !== {} && (
+            <>
+              <div class="notification is-danger is-light pl-6">
+                <h3>Errors:</h3>
+                <ul style={{ listStyleType: "disc" }}>
+                  {forms[step - 1].errors.map((e) => (
+                    <li>
+                      <strong>{e}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
+        </>
+      )}
       <div
         style={{
           display: "flex",
@@ -307,9 +628,25 @@ function Register() {
           marginBottom: 30,
         }}
       >
-        {renderStepperButton("Name", "hsl(204, 86%, 53%)", fa1, 1)}
-        {renderStepperButton("Address", "hsl(204, 86%, 53%)", fa2, 2)}
-        {renderStepperButton("ID/Password", "hsl(204, 86%, 53%)", fa3, 3)}
+        {renderStepperButton(
+          "Personal",
+          decideStepperButtonColor(0),
+          decideStepperButtonIcon(0),
+          1
+        )}
+        {renderStepperButton(
+          "Address",
+          decideStepperButtonColor(1),
+          decideStepperButtonIcon(1),
+          2
+        )}
+        {renderStepperButton(
+          "ID/Password",
+          decideStepperButtonColor(2),
+          decideStepperButtonIcon(2),
+          3
+        )}
+
         <div
           style={{
             width: "65%",
@@ -331,22 +668,35 @@ function Register() {
         </div>
       )}
 
-      <form>
-        {renderFormBody(step)}
-        <div className="field">
-          <p className="control is-expanded">
-            <button
-              onClick={() => {
-                console.log(universities);
-              }}
-              disabled={loading}
-              className="button is-info"
-            >
-              {step == 3 ? "Register" : "Next"}
-            </button>
-          </p>
-        </div>
-      </form>
+      <form>{renderFormBody(step)}</form>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          marginTop: 35,
+        }}
+      >
+        {loading ? (
+          <button
+            style={{ marginLeft: 5 }}
+            onClick={handleSubmission}
+            disabled={loading}
+            className="button is-info is-loading"
+          >
+            {step == 3 ? "Register Account" : "Next"}
+          </button>
+        ) : (
+          <button
+            style={{ marginLeft: 5 }}
+            onClick={handleSubmission}
+            className="button is-info"
+          >
+            {step == 3 ? "Register Account" : "Next"}
+          </button>
+        )}
+      </div>
 
       <div className="field" style={{ marginTop: 50 }}>
         <p className="control">
