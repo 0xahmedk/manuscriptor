@@ -1,18 +1,21 @@
-// // async function getUnis() {
-// //   await fetch("https://jsonplaceholder.typicode.com/users/1")
-// //     .then((res) => res.json())
-// //     .then((uni) => {
-// //       return uni;
-// //     })
-// //     .catch((error) => console.log(error));
-// // }
-// import axios from "axios";
+// async function getData(filter) {
+//   await fetch(`http://universities.hipolabs.com/search?name=${filter}`)
+//     .then((res) => res.json())
+//     .then((unis) => {
+//       return unis;
+//     })
+//     .catch((error) => console.log(error));
+// }
+// function getUnis(uni) {
+//   console.log(getData(uni));
 
-// const renderCollegeList = async (name) => {
-//   const response = await axios.get(`http://universities.hipolabs.com/search`, {
-//     params: { name },
-//   });
-//   return response;
-// };
+//   // let universities = [];
 
-// export const universities = renderCollegeList("university");
+//   // for (const u of data) {
+//   //   universities.push({ name: u.name, value: u.name });
+//   // }
+
+//   // return universities;
+// }
+
+// export { getUnis };

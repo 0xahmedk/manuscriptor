@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -9,14 +9,18 @@ import {
   fa2,
   fa3,
 } from "@fortawesome/free-solid-svg-icons";
+import Async from "react-select/async";
+import Select from "react-select";
 
 import { countries } from "../modules/countries";
-import { universities } from "../modules/universities";
+import { getUnis } from "../modules/universities";
 import { useAuth } from "../contexts/FirebaseContext";
 
 function Register() {
   const [viewPassword, setViewPassword] = useState(false);
   const [step, setStep] = useState(1);
+
+  const [institutionsOptions, setInstitutionsOptions] = useState([]);
 
   const [state, setState] = useState({
     email: "",
@@ -25,6 +29,24 @@ function Register() {
   });
 
   const { email, password, cpassword } = state;
+  const setInstitutionsOptionsC = (unis) => {
+    let universities = [];
+
+    for (const u of unis) {
+      universities.push({ label: u.name, value: u.name });
+    }
+
+    setInstitutionsOptions(universities);
+  };
+
+  useMemo(async () => {
+    await fetch(`http://universities.hipolabs.com/search?country=pakistan`)
+      .then((res) => res.json())
+      .then((unis) => {
+        setInstitutionsOptionsC(unis);
+      })
+      .catch((error) => console.log(error));
+  }, []);
 
   const [forms, setForms] = useState([
     {
@@ -33,7 +55,10 @@ function Register() {
         firstName: "",
         lastName: "",
         degree: "",
-        institution: "",
+        institution: {
+          value: "",
+          label: "Select Institution",
+        },
       },
       errors: null,
       isCompleted: false,
@@ -151,7 +176,7 @@ function Register() {
           if (forms[0].data.lastName === "") {
             errs.push("Please enter your Last Name");
           }
-          if (forms[0].data.institution === "") {
+          if (forms[0].data.institution.value === "") {
             errs.push("Please enter your Institution");
           }
           if (errs.length != 0) {
@@ -411,32 +436,24 @@ function Register() {
               <label className="label">
                 Institution <span style={{ color: "red" }}>*</span>{" "}
               </label>
-              <div class="select">
-                <select
-                  name="institution"
-                  value={forms[step - 1].data.institution}
-                  onChange={(e) => {
-                    if (e.target.value == "Select Institution") {
-                      forms[step - 1] = {
-                        ...forms[step - 1],
-                        data: {
-                          ...forms[step - 1].data,
-                          prefix: "",
-                        },
-                      };
-                      setForms([...forms]);
-                    } else {
-                      handleInputs(e, step);
-                    }
-                  }}
-                >
-                  <option>Select Institution</option>
-                  <option>Islamic</option>
-                  <option>FAST</option>
-                  <option>COMSATS</option>
-                  <option>Air</option>
-                </select>
-              </div>
+              <Select
+                placeholder="Select Institution"
+                options={institutionsOptions}
+                value={forms[step - 1].data.institution}
+                onChange={(item) => {
+                  forms[step - 1] = {
+                    ...forms[step - 1],
+                    data: {
+                      ...forms[step - 1].data,
+                      institution: {
+                        label: item.label,
+                        value: item.value,
+                      },
+                    },
+                  };
+                  setForms([...forms]);
+                }}
+              />
             </div>
           </>
         );
