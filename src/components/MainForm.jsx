@@ -23,7 +23,7 @@ import ReviewAndSubmit from "./ReviewAndSubmit";
 function MainForm() {
   let navigate = useNavigate();
 
-  const [submissionType, setSubmissionType] = useState("asd");
+  const [submissionType, setSubmissionType] = useState("");
 
   const [forms, setForms] = useState([
     {
@@ -52,7 +52,7 @@ function MainForm() {
     },
   ]);
 
-  const [step, setStep] = useState(4);
+  const [step, setStep] = useState(1);
 
   const decideStepperButtonColor = (i) => {
     return forms[i].isCompleted
@@ -620,9 +620,9 @@ function MainForm() {
                               })
                             );
                           }}
-                          className="button is-danger is-round is-small"
+                          className="button is-danger is-round is-small is-outlined"
                         >
-                          <FontAwesomeIcon color="white" icon={faRemove} />
+                          <FontAwesomeIcon  icon={faRemove} />
                         </button>
                       </div>
                     ))}
@@ -802,9 +802,9 @@ function MainForm() {
                             );
                           }
                         }}
-                        className="button is-danger is-round is-small"
+                        className="button is-danger is-round is-small is-outlined"
                       >
-                        <FontAwesomeIcon color="white" icon={faRemove} />
+                        <FontAwesomeIcon  icon={faRemove} />
                       </button>
                     </td>
                   </tr>
@@ -1218,9 +1218,9 @@ function MainForm() {
                             );
                           }
                         }}
-                        className="button is-danger is-round is-small"
+                        className="button is-danger is-round is-small is-outlined"
                       >
-                        <FontAwesomeIcon color="white" icon={faRemove} />
+                        <FontAwesomeIcon icon={faRemove} />
                       </button>
                     </td>
                   </tr>
