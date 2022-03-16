@@ -125,17 +125,19 @@ function Login() {
         </div>
       </div>
 
-      <div class="field">
-        <p class="control is-expanded">
-          <button
-            disabled={loading}
-            onClick={handleLogin}
-            class="button is-info"
-          >
-            Login
-          </button>
-        </p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          marginTop: 35,
+        }}
+      >
+        <button disabled={loading} onClick={handleLogin} class="button is-info">
+          Login
+        </button>
       </div>
+
       <div class="field" style={{ marginTop: 50 }}>
         <p class="control">
           <span className="block" style={{ alignSelf: "flex-end" }}>

@@ -162,6 +162,19 @@ function MainForm() {
     setForms([...forms]);
 
     setStep(step + 1);
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+    });
+  };
+
+  const setErrorsToTrue = (step) => {
+    forms[step - 1] = {
+      ...forms[step - 1],
+      errors: ["Please fill out this form!"],
+    };
+    setForms([...forms]);
   };
 
   async function handleSubmission(e) {
@@ -222,6 +235,27 @@ function MainForm() {
           break;
       }
     } else {
+      let errs = [];
+      if (!forms[0].isCompleted) {
+        errs.push("Please complete the Metadata (Step 1) first ");
+        setErrorsToTrue(1);
+        addErrorsToFormsState(errs, step);
+        if (!forms[1].isCompleted) {
+          errs.push("Please complete the Upload Files (Step 2) first");
+          setErrorsToTrue(2);
+          addErrorsToFormsState(errs, step);
+          if (!forms[3].isCompleted) {
+            errs.push("Please complete the Details & Comments (Step 3) first");
+            setErrorsToTrue(3);
+            addErrorsToFormsState(errs, step);
+            return;
+          }
+          return;
+        }
+        return;
+      }
+
+      setErrorsToNull(step);
       //submit paper
     }
   }
@@ -622,7 +656,7 @@ function MainForm() {
                           }}
                           className="button is-danger is-round is-small is-outlined"
                         >
-                          <FontAwesomeIcon  icon={faRemove} />
+                          <FontAwesomeIcon icon={faRemove} />
                         </button>
                       </div>
                     ))}
@@ -804,7 +838,7 @@ function MainForm() {
                         }}
                         className="button is-danger is-round is-small is-outlined"
                       >
-                        <FontAwesomeIcon  icon={faRemove} />
+                        <FontAwesomeIcon icon={faRemove} />
                       </button>
                     </td>
                   </tr>
@@ -812,6 +846,60 @@ function MainForm() {
               </tbody>
             </table>
             <div className="block" />
+            <div className="block" />
+
+            <div className="field">
+              <label className="label">
+                Submitting Agent
+                <span style={{ color: "red" }}>*</span>
+              </label>{" "}
+              {/* Authors Ques */}
+              <p className="control">
+                <label className="radio">
+                  <input type="radio" name="answer" />
+                  <strong> Author </strong>
+                  I, {currentUser.email}, am submitting this manuscript on
+                  behalf of myself and my co-authors.
+                </label>
+              </p>
+              <div className="block" />
+              <p className="control">
+                <label className="radio">
+                  <input type="radio" name="answer" />
+                  <strong> Submitting Agent </strong>
+                  I, {currentUser.email}, am not an author on this manuscript. I
+                  am submitting this manuscript on behalf of an author.
+                </label>
+              </p>
+            </div>
+
+            <div className="field">
+              <label className="label">
+                <strong>
+                  Please confirm that you are the sole author OR have listed all
+                  other co-authors and have their approval to submit this
+                  manuscript by checking the box below.
+                </strong>
+                <span style={{ color: "red" }}>*</span>
+              </label>{" "}
+              {/* Authors Ques */}
+              <p className="control">
+                <label className="radio">
+                  <input type="radio" name="answer" />
+                  <span>
+                    {" "}
+                    All co-authors are listed and agree the submission
+                  </span>
+                </label>
+              </p>
+              <div className="block" />
+              <p className="control">
+                <label className="radio">
+                  <input type="radio" name="answer" />
+                  <span> There are no co-authors for this submission</span>
+                </label>
+              </p>
+            </div>
           </div>
         );
 

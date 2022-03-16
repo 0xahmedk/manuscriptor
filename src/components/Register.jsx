@@ -8,8 +8,11 @@ import {
   fa1,
   fa2,
   fa3,
+  faEye,
+  faEnvelope,
+  faLock,
 } from "@fortawesome/free-solid-svg-icons";
-import Async from "react-select/async";
+
 import Select from "react-select";
 
 import { countries } from "../modules/countries";
@@ -17,7 +20,8 @@ import { getUnis } from "../modules/universities";
 import { useAuth } from "../contexts/FirebaseContext";
 
 function Register() {
-  const [viewPassword, setViewPassword] = useState(false);
+  const [viewPassword1, setViewPassword1] = useState(false);
+  const [viewPassword2, setViewPassword2] = useState(false);
   const [step, setStep] = useState(1);
 
   const [institutionsOptions, setInstitutionsOptions] = useState([]);
@@ -53,18 +57,22 @@ function Register() {
       data: {
         prefix: "",
         firstName: "",
+        middleName: "",
         lastName: "",
         degree: "",
         institution: {
           value: "",
           label: "Select Institution",
         },
+        department: "",
       },
       errors: null,
       isCompleted: false,
     },
     {
       data: {
+        phoneNumber: 0,
+        fax: 0,
         street: "",
         zipcode: 0,
         city: "",
@@ -148,12 +156,17 @@ function Register() {
     setForms([...forms]);
 
     setStep(step + 1);
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+    });
   };
 
   const setErrorsToTrue = (step) => {
     forms[step - 1] = {
       ...forms[step - 1],
-      errors: {},
+      errors: ["Please fill out this form!"],
     };
     setForms([...forms]);
   };
@@ -173,12 +186,19 @@ function Register() {
           if (forms[0].data.firstName === "") {
             errs.push("Please enter your First Name");
           }
+          if (forms[0].data.middleName === "") {
+            errs.push("Please enter your Middle Name");
+          }
           if (forms[0].data.lastName === "") {
             errs.push("Please enter your Last Name");
+          }
+          if (forms[0].data.department === "") {
+            errs.push("Please enter your Department");
           }
           if (forms[0].data.institution.value === "") {
             errs.push("Please enter your Institution");
           }
+
           if (errs.length != 0) {
             addErrorsToFormsState(errs, step);
           } else {
@@ -186,6 +206,10 @@ function Register() {
           }
           break;
         case 2:
+          if (forms[1].data.phoneNumber === 0) {
+            errs.push("Please enter your Phone Number");
+          }
+
           if (forms[1].data.city === "") {
             errs.push("Please enter your City");
           }
@@ -375,45 +399,57 @@ function Register() {
               {"  "}
               <span style={{ color: "red" }}>*</span>
             </div>
-            <div className="columns">
-              <div className="column is-half">
-                <div className="field">
-                  <label className="label">
-                    First Name <span style={{ color: "red" }}>*</span>{" "}
-                  </label>
-                  <p className="control">
-                    <input
-                      className="input"
-                      type="text"
-                      placeholder="First Name"
-                      name="firstName"
-                      value={forms[step - 1].data.firstName}
-                      onChange={(e) => {
-                        handleInputs(e, step);
-                      }}
-                    />
-                  </p>
-                </div>
-              </div>
-              <div className="column">
-                <div className="field">
-                  <label className="label">
-                    Last Name <span style={{ color: "red" }}>*</span>{" "}
-                  </label>
-                  <p className="control">
-                    <input
-                      className="input"
-                      type="text"
-                      placeholder="Last Name"
-                      name="lastName"
-                      value={forms[step - 1].data.lastName}
-                      onChange={(e) => {
-                        handleInputs(e, step);
-                      }}
-                    />
-                  </p>
-                </div>
-              </div>
+
+            <div className="field">
+              <label className="label">
+                First Name <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="First Name"
+                  name="firstName"
+                  value={forms[step - 1].data.firstName}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label className="label">
+                Middle Name <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Middle Name"
+                  name="middleName"
+                  value={forms[step - 1].data.middleName}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label className="label">
+                Last Name <span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Last Name"
+                  name="lastName"
+                  value={forms[step - 1].data.lastName}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
             </div>
 
             <div className="field">
@@ -425,6 +461,24 @@ function Register() {
                   placeholder="Degree"
                   name="degree"
                   value={forms[step - 1].data.degree}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
+            </div>
+
+            <div className="field">
+              <label className="label">
+                Department<span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Department"
+                  name="department"
+                  value={forms[step - 1].data.department}
                   onChange={(e) => {
                     handleInputs(e, step);
                   }}
@@ -463,8 +517,38 @@ function Register() {
           <>
             <div className="field">
               <label className="label">
-                Street # <span style={{ color: "red" }}>*</span>{" "}
+                Phone # <span style={{ color: "red" }}>*</span>{" "}
               </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Phone Number"
+                  name="phoneNumber"
+                  value={forms[step - 1].data.phoneNumber}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label className="label">Fax</label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Fax"
+                  name="fax"
+                  value={forms[step - 1].data.fax}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
+            </div>
+            <div className="field">
+              <label className="label">Street #</label>
               <p className="control">
                 <input
                   className="input"
@@ -479,9 +563,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label className="label">
-                ZipCode <span style={{ color: "red" }}>*</span>{" "}
-              </label>
+              <label className="label">ZipCode</label>
               <p className="control">
                 <input
                   className="input"
@@ -565,35 +647,64 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label className="label">
-                Password <span style={{ color: "red" }}>*</span>{" "}
+              <label class="label">
+                Password <span style={{ color: "red" }}>*</span>
               </label>
-              <p className="control">
+              <p className="control has-icons-left has-icons-right">
                 <input
+                  required
                   className="input"
-                  type="password"
+                  type={viewPassword1 ? "text" : "password"}
                   placeholder="Password"
                   name="password"
-                  onChange={onInputChange}
                   value={password}
-                  required
+                  onChange={onInputChange}
                 />
+                <span className="icon is-small is-left">
+                  <FontAwesomeIcon icon={faLock} />
+                </span>
+                <i
+                  style={{
+                    position: "absolute",
+                    top: 7,
+                    right: 10,
+                    color: viewPassword1 ? "black" : "#7774",
+                  }}
+                  onClick={() => setViewPassword1(!viewPassword1)}
+                >
+                  <FontAwesomeIcon icon={faEye} />
+                </i>
               </p>
+              <p class="help">Password should be 6 characters long minimum</p>
             </div>
             <div className="field">
-              <label className="label">
-                Confirm Password <span style={{ color: "red" }}>*</span>{" "}
+              <label class="label">
+                Confrim Password <span style={{ color: "red" }}>*</span>
               </label>
-              <p className="control">
+              <p className="control has-icons-left has-icons-right">
                 <input
+                  required
                   className="input"
-                  type="password"
-                  placeholder="Confirm Password"
+                  type={viewPassword2 ? "text" : "password"}
+                  placeholder="Confrim Password"
                   name="cpassword"
                   value={cpassword}
                   onChange={onInputChange}
-                  required
                 />
+                <span className="icon is-small is-left">
+                  <FontAwesomeIcon icon={faLock} />
+                </span>
+                <i
+                  style={{
+                    position: "absolute",
+                    top: 7,
+                    right: 10,
+                    color: viewPassword2 ? "black" : "#7774",
+                  }}
+                  onClick={() => setViewPassword2(!viewPassword2)}
+                >
+                  <FontAwesomeIcon icon={faEye} />
+                </i>
               </p>
             </div>
           </>
