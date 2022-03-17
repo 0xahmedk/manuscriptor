@@ -18,6 +18,11 @@ import Select from "react-select";
 import { countries } from "../modules/countries";
 import { getUnis } from "../modules/universities";
 import { useAuth } from "../contexts/FirebaseContext";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 
 function Register() {
   const [viewPassword1, setViewPassword1] = useState(false);
@@ -155,7 +160,7 @@ function Register() {
     };
     setForms([...forms]);
 
-    setStep(step + 1);
+    if (step !== 3) setStep(step + 1);
 
     window.scrollTo({
       top: 0,
@@ -247,7 +252,7 @@ function Register() {
     }
   }
 
-  const { signup } = useAuth();
+  const { auth, signup, currentUser } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -268,9 +273,19 @@ function Register() {
     setLoading(true);
 
     try {
-      await signup(email, password).then(() => {
+      await createUserWithEmailAndPassword(auth, email, password).then(() => {
+        sendEmailVerification(auth.currentUser)
+          .then(() => {
+            alert("Email verification link send to your email address!");
+          })
+          .catch((err) => alert(err.message));
+        updateProfile(auth.currentUser, {
+          displayName: forms[0].data.firstName,
+        });
         setSuccess(true);
         setTimeout(() => {
+          // console.log("thenWala", user);
+
           navigate("/login");
         }, 5000);
       });
@@ -729,20 +744,16 @@ function Register() {
       {/* Errors Notification */}
       {forms[step - 1].errors !== null && (
         <>
-          {forms[step - 1].errors !== {} && (
-            <>
-              <div class="notification is-danger is-light pl-6">
-                <h3>Errors:</h3>
-                <ul style={{ listStyleType: "disc" }}>
-                  {forms[step - 1].errors.map((e) => (
-                    <li>
-                      <strong>{e}</strong>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
+          <div class="notification is-danger is-light pl-6">
+            <h3>Errors:</h3>
+            <ul style={{ listStyleType: "disc" }}>
+              {forms[step - 1].errors.map((e) => (
+                <li>
+                  <strong>{e}</strong>
+                </li>
+              ))}
+            </ul>
+          </div>
         </>
       )}
       <div

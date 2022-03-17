@@ -12,9 +12,10 @@ function Login() {
 
   const { email, password } = state;
 
-  const { login, currentUser } = useAuth();
+  const { login, currentUser, forgotPassword } = useAuth();
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   let navigate = useNavigate();
@@ -69,6 +70,13 @@ function Login() {
         <div className="notification is-danger is-light">{error}</div>
       )}
 
+      {success.length > 0 && (
+        <div class="notification is-success is-light">
+          <button onClick={() => setSuccess(false)} class="delete"></button>
+          {success}
+        </div>
+      )}
+
       <div className="field">
         <label class="label">
           Email <span style={{ color: "red" }}>*</span>{" "}
@@ -121,7 +129,24 @@ function Login() {
 
       <div class="field ">
         <div class="control">
-          <Link to={{ pathname: "/" }}>Reset Password</Link>
+          <a
+            onClick={() => {
+              if (email !== "") {
+                forgotPassword(email);
+                setState({ ...state, email: "" });
+                setError("");
+                setSuccess(
+                  "A reset link has been sent to your email, follow along that link"
+                );
+              } else {
+                setSuccess("");
+                setError("Please enter email first!");
+              }
+            }}
+            to={{ pathname: "/" }}
+          >
+            Reset Password
+          </a>
         </div>
       </div>
 

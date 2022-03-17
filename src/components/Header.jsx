@@ -62,19 +62,31 @@ function Header() {
         <div className="navbar-end">
           <div className="navbar-item">
             {currentUser ? (
-              <div className="navbar-item has-dropdown is-hoverable">
-                <a className="navbar-link">Current Logged In Account</a>
+              <>
+                <div className="navbar-item has-dropdown is-hoverable">
+                  <a
+                    className="navbar-link"
+                    style={{
+                      color: "white",
+                      marginRight: 15,
+                      textTransform: "capitalize",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {currentUser.displayName}
+                  </a>
 
-                <div className="navbar-dropdown">
-                  <span className="navbar-item">{currentUser.email}</span>
-                  <p className="navbar-item">
-                    <FontAwesomeIcon icon={faSignOut} />
-                    <a onClick={handleLogout} style={{ marginLeft: 5 }}>
-                      Log out
-                    </a>
-                  </p>
+                  <div className="navbar-dropdown">
+                    <span className="navbar-item">{currentUser.email}</span>
+                  </div>
                 </div>
-              </div>
+                <button
+                  className="button is-info is-light is-small"
+                  onClick={handleLogout}
+                >
+                  <strong>Log Out</strong>
+                </button>
+              </>
             ) : (
               <div className="buttons">
                 <Link

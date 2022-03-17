@@ -1,3 +1,4 @@
+import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useContext, useState, useEffect } from "react";
 import {
   auth,
@@ -29,6 +30,10 @@ export function FirebaseProvider({ children }) {
     return signOut(auth);
   }
 
+  const forgotPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+  };
+
   //   function resetPassword(email) {
   //     return auth.sendPasswordResetEmail(email);
   //   }
@@ -55,6 +60,8 @@ export function FirebaseProvider({ children }) {
     login,
     signup,
     logout,
+    forgotPassword,
+    auth,
     // resetPassword,
     // updateEmail,
     // updatePassword,
