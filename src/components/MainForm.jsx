@@ -41,7 +41,11 @@ function MainForm() {
       isCompleted: false,
     },
     {
-      data: {},
+      data: {
+        noOfFigures: 0,
+        noOfTables: 0,
+        noOfWords: 0,
+      },
       errors: null,
       isCompleted: false,
     },
@@ -103,7 +107,7 @@ function MainForm() {
   const [authorsList, setAuthorsList] = useState([
     {
       name: "Ahmed",
-      email: currentUser.email,
+      email: currentUser.displayName,
       orcid: "1234-1234-1234-1234",
       institution: "International Islamic University, Islamabad",
     },
@@ -1152,6 +1156,79 @@ function MainForm() {
                   />
                 </p>
               )}
+            </div>
+
+            {/* Manuscript Info */}
+            <div className="field">
+              <label className="label">
+                Manuscript Information <span style={{ color: "red" }}>*</span>
+              </label>
+
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">
+                  <label class="label">No of Figures</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <p class="control">
+                      <input
+                        class="input"
+                        type="number"
+                        placeholder="No of Figures"
+                        name="noOfFigures"
+                        value={forms[step - 1].data.noOfFigures}
+                        onChange={(e) => {
+                          handleInputs(e, step);
+                        }}
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">
+                  <label class="label">No of Tables</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <p class="control">
+                      <input
+                        class="input"
+                        type="number"
+                        placeholder="No of Tables"
+                        name="noOfTables"
+                        value={forms[step - 1].data.noOfTables}
+                        onChange={(e) => {
+                          handleInputs(e, step);
+                        }}
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">
+                  <label class="label">No of Words</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <p class="control">
+                      <input
+                        class="input"
+                        type="number"
+                        placeholder="No of Words"
+                        name="noOfWords"
+                        value={forms[step - 1].data.noOfWords}
+                        onChange={(e) => {
+                          handleInputs(e, step);
+                        }}
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Funding */}

@@ -280,7 +280,7 @@ function Register() {
           })
           .catch((err) => alert(err.message));
         updateProfile(auth.currentUser, {
-          displayName: forms[0].data.firstName,
+          displayName: forms[0].data,
         });
         setSuccess(true);
         setTimeout(() => {
