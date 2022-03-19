@@ -73,11 +73,11 @@ function Header() {
                       fontWeight: "bold",
                     }}
                   >
-                    {currentUser.displayName}
+                    {currentUser?.displayName}
                   </a>
 
                   <div className="navbar-dropdown">
-                    <span className="navbar-item">{currentUser.email}</span>
+                    <span className="navbar-item">{currentUser?.email}</span>
                   </div>
                 </div>
                 <button

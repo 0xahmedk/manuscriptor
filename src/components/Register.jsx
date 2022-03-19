@@ -27,6 +27,7 @@ import {
 function Register() {
   const [viewPassword1, setViewPassword1] = useState(false);
   const [viewPassword2, setViewPassword2] = useState(false);
+  const [agreeTermsAndConditions, setAgreeTermsAndConditions] = useState(false);
   const [step, setStep] = useState(1);
 
   const [institutionsOptions, setInstitutionsOptions] = useState([]);
@@ -240,10 +241,18 @@ function Register() {
           errs.push("Please complete the Address Information (Step 2) first");
           setErrorsToTrue(2);
           addErrorsToFormsState(errs, step);
+          if (!agreeTermsAndConditions) {
+            errs.push("Please agree to terms and conditions");
+            addErrorsToFormsState(errs, step);
+            return;
+          }
+
           return;
         }
         return;
       }
+
+      
 
       setErrorsToNull(step);
 
@@ -722,6 +731,20 @@ function Register() {
                 </i>
               </p>
             </div>
+            <div className="block" />
+
+            <label class="checkbox">
+              <input
+                checked={agreeTermsAndConditions}
+                type="checkbox"
+                onChange={() =>
+                  setAgreeTermsAndConditions(!agreeTermsAndConditions)
+                }
+              />
+              <span style={{ color: "red", marginLeft: 5 }}>*</span>I agree to
+              all of Terms and Conditions.
+            </label>
+            <div className="block" />
           </>
         );
     }

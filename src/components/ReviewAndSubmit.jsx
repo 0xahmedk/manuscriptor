@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useAuth } from "../contexts/FirebaseContext";
+
 function ReviewAndSubmit({
   form1Data,
   addedKeywords,
@@ -7,7 +9,10 @@ function ReviewAndSubmit({
   authorsList,
   fundersList,
   filesSelected,
+  fileTypeSelect,
 }) {
+  const { currentUser } = useAuth();
+
   const getFormattedTimeDate = () => {
     var today = new Date();
     var date =
@@ -127,15 +132,25 @@ function ReviewAndSubmit({
           </thead>
 
           <tbody>
-            {/* {fundersList.length == 0 && (
-                  <td className="has-text-centered">No funders added</td>
-                )} */}
-            <tr>
-              <td>Screenshot from 2022-03-11 11-28-19.png</td>
-              <td>Title Page</td>
-              <td>{getFormattedTimeDate()}</td>
-              <td>Ahmed Khan</td>
-            </tr>
+            {filesSelected[0].name == "" && (
+              <td className="has-text-centered">No files added</td>
+            )}
+            {filesSelected.map(
+              (f, i) =>
+                f.name !== "" && (
+                  <tr>
+                    <td>{f.name}</td>
+                    <td>{fileTypeSelect[i]}</td>
+                    <td>{getFormattedTimeDate()}</td>
+                    <td>{currentUser.displayName}</td>
+                    <td>
+                      <progress class="progress is-info" value="45" max="100">
+                        45%
+                      </progress>
+                    </td>
+                  </tr>
+                )
+            )}
           </tbody>
         </table>
       </div>

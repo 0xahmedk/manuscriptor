@@ -12,6 +12,7 @@ import {
   faAdd,
   faRemove,
   faUpload,
+  faEdit,
 } from "@fortawesome/free-solid-svg-icons";
 import CreatableSelect from "react-select/creatable";
 import LoadingOverlay from "react-loading-overlay";
@@ -20,43 +21,16 @@ import { useAuth } from "../contexts/FirebaseContext";
 import FileUploadTester from "./FileUploadTester";
 import ReviewAndSubmit from "./ReviewAndSubmit";
 
-function MainForm() {
+function MainForm({ initialForm }) {
   let navigate = useNavigate();
 
-  const [submissionType, setSubmissionType] = useState("");
+  const { currentUser } = useAuth();
 
-  const [forms, setForms] = useState([
-    {
-      data: {
-        title: "",
-        abstract: "",
-        addMaterial: "",
-      },
-      errors: null,
-      isCompleted: false,
-    },
-    {
-      data: {},
-      errors: null,
-      isCompleted: false,
-    },
-    {
-      data: {
-        noOfFigures: 0,
-        noOfTables: 0,
-        noOfWords: 0,
-      },
-      errors: null,
-      isCompleted: false,
-    },
-    {
-      data: {},
-      errors: null,
-      isCompleted: false,
-    },
-  ]);
+  const [submissionType, setSubmissionType] = useState("sada");
 
-  const [step, setStep] = useState(1);
+  const [forms, setForms] = useState(initialForm);
+
+  const [step, setStep] = useState(2);
 
   const decideStepperButtonColor = (i) => {
     return forms[i].isCompleted
@@ -95,8 +69,6 @@ function MainForm() {
     return icon;
   };
 
-  const { currentUser } = useAuth();
-
   const [author, setAuthor] = useState({
     name: "",
     email: "",
@@ -104,17 +76,20 @@ function MainForm() {
     institution: "",
   });
 
-  const [authorsList, setAuthorsList] = useState([
-    {
-      name: "Ahmed",
-      email: currentUser.displayName,
-      orcid: "1234-1234-1234-1234",
-      institution: "International Islamic University, Islamabad",
-    },
-  ]);
+  const [editAuthorId, setEditAuthorId] = useState(0);
+  const [editAuthor, setEditAuthor] = useState({
+    name: "",
+    email: "",
+    orcid: "",
+    institution: "",
+  });
 
   const onInputChangeAuthor = (e) => {
     setAuthor({ ...author, [e.target.name]: e.target.value });
+  };
+
+  const onInputChangeEditAuthor = (e) => {
+    setEditAuthor({ ...editAuthor, [e.target.name]: e.target.value });
   };
 
   const [options, setOptions] = useState([
@@ -122,7 +97,6 @@ function MainForm() {
     { value: "business history", label: "Business history" },
     { value: "business law", label: "Business law" },
   ]);
-  const [addedKeywords, setAddedKeywords] = useState([]);
   const [currentSelectVal, setCurrentSelectVal] = useState({
     value: "",
     label: "Select Value",
@@ -136,6 +110,7 @@ function MainForm() {
   });
 
   const [toggleAuthorModal, setToggleAuthorModal] = useState(false);
+  const [toggleEditAuthorModal, setToggleEditAuthorModal] = useState(false);
 
   const { email, password, cpassword } = state;
 
@@ -197,8 +172,14 @@ function MainForm() {
           if (forms[0].data.abstract < 500) {
             errs.push("Abstract should be of minimum 500 characters");
           }
-          if (addedKeywords.length < 3) {
+          if (forms[0].data.addedKeywords.length < 3) {
             errs.push("There should be minimum 3 keywords");
+          }
+          if (forms[0].data.submittingAgent === "") {
+            errs.push("Please select Submitting Agent.");
+          }
+          if (forms[0].data.soleAuthor === "") {
+            errs.push("Please select Sole Author option.");
           }
           if (errs.length != 0) {
             addErrorsToFormsState(errs, step);
@@ -227,6 +208,31 @@ function MainForm() {
             errs.push(
               "Please check all the confirmation statements given below!"
             );
+          }
+          if (
+            forms[2].data.noOfFigures === 0 ||
+            forms[2].data.noOfTables === 0 ||
+            forms[2].data.noOfWords === 0
+          ) {
+            errs.push(
+              "Please complete Manuscript Information first, given below!"
+            );
+          }
+
+          if (forms[2].data.isSubmittedPrev === "") {
+            errs.push(
+              "Please select if Manuscript has been submitted previously?"
+            );
+          }
+          if (
+            forms[2].data.isSubmittedPrev === "yes" &&
+            forms[2].data.prevMansId === ""
+          ) {
+            errs.push("Please enter previously submitted Manuscript's ID?");
+          }
+
+          if (forms[2].data.thirdPartySupport === "") {
+            errs.push("Please check Third Party Support options.");
           }
           if (errs.length != 0) {
             addErrorsToFormsState(errs, step);
@@ -312,7 +318,9 @@ function MainForm() {
 
   // Form Step 2 states
   const [fileTypeSelect, setFileTypeSelect] = useState(["", "", "", ""]);
-  const [filesSelected, setFilesSelected] = useState(new Array(4).fill(""));
+  const [filesSelected, setFilesSelected] = useState(
+    new Array(4).fill(new File([], "", {}))
+  );
   const [fileUploadLoading, setFileUploadLoading] = useState(false);
 
   const checkIfAllFilesSelected = () => {
@@ -366,7 +374,7 @@ function MainForm() {
       (today.getMonth() + 1) +
       "-" +
       today.getDate() +
-      "(" +
+      " (" +
       today.getHours() +
       ":" +
       today.getMinutes() +
@@ -376,6 +384,7 @@ function MainForm() {
 
   // Form 3 states
   const [toggleFundingModal, setToggleFundingModal] = useState(false);
+  const [toggleEditFundingModal, setToggleEditFundingModal] = useState(false);
 
   const [funder, setFunder] = useState({
     findfunder: "",
@@ -383,13 +392,12 @@ function MainForm() {
     awardnumber: 0,
   });
 
-  const [fundersList, setFundersList] = useState([
-    {
-      findfunder: "Ahmed",
-      grantrecep: "Mudud",
-      awardnumber: 12345,
-    },
-  ]);
+  const [editFunderId, setEditFunderId] = useState(0);
+  const [editFunder, setEditFunder] = useState({
+    findfunder: "",
+    grantrecep: "",
+    awardnumber: 0,
+  });
 
   const [coverLetter, setCoverLetter] = useState("");
 
@@ -399,6 +407,10 @@ function MainForm() {
 
   const onInputChangeFunder = (e) => {
     setFunder({ ...funder, [e.target.name]: e.target.value });
+  };
+
+  const onInputChangeEditFunder = (e) => {
+    setEditFunder({ ...editFunder, [e.target.name]: e.target.value });
   };
 
   ////////////---------///////////
@@ -415,8 +427,7 @@ function MainForm() {
               {forms[step - 1].data.title.length < 50 ? (
                 <span
                   style={{
-                    backgroundColor: "red",
-                    color: "#fff",
+                    color: "red",
                     paddingLeft: 4,
                     paddingRight: 4,
                     borderRadius: 5,
@@ -427,8 +438,7 @@ function MainForm() {
               ) : (
                 <span
                   style={{
-                    backgroundColor: "green",
-                    color: "#fff",
+                    color: "green",
                     paddingLeft: 4,
                     paddingRight: 4,
                     borderRadius: 5,
@@ -478,8 +488,7 @@ function MainForm() {
               {forms[step - 1].data.abstract.length < 500 ? (
                 <span
                   style={{
-                    backgroundColor: "red",
-                    color: "#fff",
+                    color: "red",
                     paddingLeft: 4,
                     paddingRight: 4,
                     borderRadius: 5,
@@ -490,8 +499,7 @@ function MainForm() {
               ) : (
                 <span
                   style={{
-                    backgroundColor: "green",
-                    color: "#fff",
+                    color: "green",
                     paddingLeft: 4,
                     paddingRight: 4,
                     borderRadius: 5,
@@ -558,11 +566,11 @@ function MainForm() {
 
             <span
               style={{
-                backgroundColor:
-                  addedKeywords.length < 3 || addedKeywords.length > 5
+                color:
+                  forms[0].data.addedKeywords.length < 3 ||
+                  forms[0].data.addedKeywords.length > 5
                     ? "red"
                     : "green",
-                color: "#fff",
                 paddingLeft: 4,
                 paddingRight: 4,
                 borderRadius: 5,
@@ -573,19 +581,21 @@ function MainForm() {
             <div className="block">
               <CreatableSelect
                 placeholder="Select Keyword"
-                isDisabled={addedKeywords.length > 4 ? true : false}
+                isDisabled={
+                  forms[0].data.addedKeywords.length > 4 ? true : false
+                }
                 options={options}
                 value={currentSelectVal}
                 onChange={(item) => setCurrentSelectVal(item)}
                 onCreateOption={(newValue) => {
                   newValue.split(/,+|,\s+/g).forEach((item) => {
-                    addedKeywords.push({
+                    forms[0].data.addedKeywords.push({
                       value: item,
                       label: item.charAt(0).toUpperCase() + item.slice(1),
                     });
                   });
 
-                  setAddedKeywords([...addedKeywords]);
+                  setForms([...forms]);
                 }}
               />
             </div>
@@ -602,8 +612,8 @@ function MainForm() {
                 <button
                   onClick={() => {
                     if (currentSelectVal.value != "")
-                      addedKeywords.push(currentSelectVal);
-                    setAddedKeywords([...addedKeywords]);
+                      forms[0].data.addedKeywords.push(currentSelectVal);
+                    setForms([...forms]);
                     setCurrentSelectVal({
                       value: "",
                       label: "Select Value",
@@ -629,10 +639,10 @@ function MainForm() {
                 </div>
                 <div className="card-content">
                   <div className="content">
-                    {addedKeywords.length == 0 && (
+                    {forms[0].data.addedKeywords.length == 0 && (
                       <div className="has-text-centered">No keywords added</div>
                     )}
-                    {addedKeywords.map((keyword) => (
+                    {forms[0].data.addedKeywords.map((keyword) => (
                       <div
                         key={keyword.value}
                         style={{
@@ -652,11 +662,20 @@ function MainForm() {
                             options.push(keyword);
                             setOptions([...options]);
 
-                            setAddedKeywords(
-                              addedKeywords.filter(function (el) {
-                                return el.value != keyword.value;
-                              })
-                            );
+                            forms[0] = {
+                              ...forms[0],
+                              data: {
+                                ...forms[0].data,
+                                addedKeywords:
+                                  forms[0].data.addedKeywords.filter(function (
+                                    el
+                                  ) {
+                                    return el.value != keyword.value;
+                                  }),
+                              },
+                            };
+
+                            setForms([...forms]);
                           }}
                           className="button is-danger is-round is-small is-outlined"
                         >
@@ -770,8 +789,8 @@ function MainForm() {
                   <footer className="modal-card-foot">
                     <button
                       onClick={() => {
-                        authorsList.push(author);
-                        setAuthorsList(authorsList);
+                        forms[0].data.authorsList.push(author);
+                        setForms(forms);
                         setToggleAuthorModal(false);
                       }}
                       className="button is-info"
@@ -780,6 +799,136 @@ function MainForm() {
                     </button>
                     <button
                       onClick={() => setToggleAuthorModal(false)}
+                      className="button"
+                    >
+                      Cancel
+                    </button>
+                  </footer>
+                </div>
+              </div>
+            )}
+
+            {toggleEditAuthorModal && (
+              <div className="modal is-active is-clipped">
+                <div className="modal-background"></div>
+                <div className="modal-card">
+                  <header className="modal-card-head px-6">
+                    <p className="modal-card-title">Edit Author</p>
+                    <button
+                      onClick={() => setToggleEditAuthorModal(false)}
+                      className="delete"
+                      aria-label="close"
+                    ></button>
+                  </header>
+                  <section className="modal-card-body">
+                    <div className="field is-horizontal">
+                      {/* Author Name */}
+                      <div className="field-label is-normal">
+                        <label className="label">Name</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Name"
+                              name="name"
+                              value={editAuthor.name}
+                              onChange={onInputChangeEditAuthor}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Author Email */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Email</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Email"
+                              name="email"
+                              value={editAuthor.email}
+                              onChange={onInputChangeEditAuthor}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Author ORCID */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">ORCID</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="ORCID with dashes"
+                              name="orcid"
+                              value={editAuthor.orcid}
+                              onChange={onInputChangeEditAuthor}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Author Institution */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Institution</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Institution"
+                              name="institution"
+                              value={editAuthor.institution}
+                              onChange={onInputChangeEditAuthor}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <footer className="modal-card-foot">
+                    <button
+                      onClick={() => {
+                        let authorsNewList = forms[0].data.authorsList.filter(
+                          function (el) {
+                            return el.orcid !== editAuthorId;
+                          }
+                        );
+                        authorsNewList.push(editAuthor);
+
+                        forms[0] = {
+                          ...forms[0],
+                          data: {
+                            ...forms[0].data,
+                            authorsList: authorsNewList,
+                          },
+                        };
+
+                        setForms([...forms]);
+                        setToggleEditAuthorModal(false);
+                      }}
+                      className="button is-info"
+                    >
+                      Edit Author
+                    </button>
+                    <button
+                      onClick={() => setToggleEditAuthorModal(false)}
                       className="button"
                     >
                       Cancel
@@ -816,34 +965,62 @@ function MainForm() {
                 <tr></tr>
               </tfoot>
               <tbody>
-                {authorsList.length == 0 && (
+                {forms[0].data.authorsList.length == 0 && (
                   <td className="has-text-centered">No Authors added</td>
                 )}
-                {authorsList.map((a) => (
+                {forms[0].data.authorsList.map((a) => (
                   <tr key={a.orcid}>
                     <td>{a.name}</td>
                     <td>{a.email}</td>
                     <td>{a.orcid}</td>
                     <td>{a.institution}</td>
                     <td>
-                      <button
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              `Are you sure to delete author named ${a.name}?`
-                            )
-                          ) {
-                            setAuthorsList(
-                              authorsList.filter(function (el) {
-                                return el.orcid != a.orcid;
-                              })
-                            );
-                          }
-                        }}
-                        className="button is-danger is-round is-small is-outlined"
-                      >
-                        <FontAwesomeIcon icon={faRemove} />
-                      </button>
+                      {a.name !== currentUser.displayName && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditAuthorId(a.orcid);
+                              setEditAuthor(
+                                forms[0].data.authorsList.find(
+                                  (aa) => aa.orcid === a.orcid
+                                )
+                              );
+                              setToggleEditAuthorModal(true);
+                            }}
+                            className="button is-info is-round is-small is-outlined"
+                            style={{ marginRight: 5 }}
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `Are you sure to delete author named ${a.name}?`
+                                )
+                              ) {
+                                forms[0] = {
+                                  ...forms[0],
+                                  data: {
+                                    ...forms[0].data,
+                                    authorsList:
+                                      forms[0].data.authorsList.filter(
+                                        function (el) {
+                                          return el.orcid != a.orcid;
+                                        }
+                                      ),
+                                  },
+                                };
+
+                                setForms([...forms]);
+                              }
+                            }}
+                            className="button is-danger is-round is-small is-outlined"
+                          >
+                            <FontAwesomeIcon icon={faRemove} />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -860,22 +1037,40 @@ function MainForm() {
               {/* Authors Ques */}
               <p className="control">
                 <label className="radio">
-                  <input type="radio" name="answer" />
+                  <input
+                    type="radio"
+                    name="submittingAgent"
+                    value="yes"
+                    checked={forms[step - 1].data.submittingAgent === "yes"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
                   <strong> Author </strong>
-                  I, {currentUser.email}, am submitting this manuscript on
+                  I, {currentUser.displayName}, am submitting this manuscript on
                   behalf of myself and my co-authors.
                 </label>
               </p>
-              <div className="block" />
               <p className="control">
                 <label className="radio">
-                  <input type="radio" name="answer" />
+                  <input
+                    type="radio"
+                    name="submittingAgent"
+                    value="no"
+                    checked={forms[step - 1].data.submittingAgent === "no"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
                   <strong> Submitting Agent </strong>
-                  I, {currentUser.email}, am not an author on this manuscript. I
-                  am submitting this manuscript on behalf of an author.
+                  I, {currentUser.displayName}, am not an author on this
+                  manuscript. I am submitting this manuscript on behalf of an
+                  author.
                 </label>
               </p>
             </div>
+
+            <div className="block" />
 
             <div className="field">
               <label className="label">
@@ -889,17 +1084,32 @@ function MainForm() {
               {/* Authors Ques */}
               <p className="control">
                 <label className="radio">
-                  <input type="radio" name="answer" />
+                  <input
+                    type="radio"
+                    name="soleAuthor"
+                    value="yes"
+                    checked={forms[step - 1].data.soleAuthor === "yes"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
                   <span>
                     {" "}
                     All co-authors are listed and agree the submission
                   </span>
                 </label>
               </p>
-              <div className="block" />
               <p className="control">
                 <label className="radio">
-                  <input type="radio" name="answer" />
+                  <input
+                    type="radio"
+                    name="soleAuthor"
+                    value="no"
+                    checked={forms[step - 1].data.soleAuthor === "no"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
                   <span> There are no co-authors for this submission</span>
                 </label>
               </p>
@@ -942,7 +1152,9 @@ function MainForm() {
                                 setFileTypeSelect([...fileTypeSelect]);
                               }
                             }}
-                            disabled={filesSelected[i] != "" ? true : false}
+                            disabled={
+                              filesSelected[i].name !== "" ? true : false
+                            }
                           >
                             <option>Select File Type</option>
                             <option value="Title Page">Title Page</option>
@@ -955,18 +1167,17 @@ function MainForm() {
                         </div>
                       </td>
                       <td>
-                        {fileTypeSelect[i] != "" &&
-                          (filesSelected[i] == "" ? (
+                        {fileTypeSelect[i] !== "" &&
+                          (filesSelected[i].name === "" ? (
                             <div className="file has-name">
                               <label className="file-label">
                                 <input
                                   className="file-input"
                                   type="file"
                                   name="resume"
-                                  accept=".*"
-                                  value={filesSelected[i]}
+                                  accept=".doc, .pdf, .docx"
                                   onChange={(e) => {
-                                    filesSelected[i] = e.target.value;
+                                    filesSelected[i] = e.target.files[0];
                                     setFilesSelected([...filesSelected]);
                                   }}
                                 />
@@ -982,7 +1193,7 @@ function MainForm() {
                                   </span>
                                 </span>
                                 <span className="file-name">
-                                  {filesSelected[i]}
+                                  {filesSelected[i].name}
                                 </span>
                               </label>
                             </div>
@@ -993,11 +1204,9 @@ function MainForm() {
                                   className="file-input"
                                   type="file"
                                   name="resume"
-                                  accept=".*"
-                                  value={filesSelected[i]}
+                                  accept=".doc, .pdf, .docx"
                                   onChange={(e) => {
-                                    console.log(e.target.files);
-                                    filesSelected[i] = e.target.value;
+                                    filesSelected[i] = e.target.files[0];
                                     setFilesSelected([...filesSelected]);
                                   }}
                                 />
@@ -1013,14 +1222,14 @@ function MainForm() {
                                   </span>
                                 </span>
                                 <span className="file-name">
-                                  {filesSelected[i]}
+                                  {filesSelected[i].name}
                                 </span>
                               </label>
                             </div>
                           ))}
                       </td>
                       <td>
-                        {filesSelected[i] != "" && (
+                        {filesSelected[i].name !== "" && (
                           <button
                             onClick={() => {
                               if (
@@ -1028,14 +1237,14 @@ function MainForm() {
                                   `Are you sure to remove file named ${filesSelected[i]}?`
                                 )
                               ) {
-                                filesSelected[i] = "";
+                                filesSelected[i] = new File([], "", {});
                                 setFileTypeSelect[i] = "";
                                 setFilesSelected([...filesSelected]);
                               }
                             }}
-                            className="button is-danger is-round is-small"
+                            className="button is-danger is-round is-small is-outlined"
                           >
-                            <FontAwesomeIcon color="white" icon={faRemove} />
+                            <FontAwesomeIcon icon={faRemove} />
                           </button>
                         )}
                       </td>
@@ -1053,9 +1262,14 @@ function MainForm() {
                 }}
               >
                 <button
-                  disabled={checkIfAllFilesSelected() ? false : true}
+                  disabled={checkIfAllFilesSelected() ? true : false}
                   className="button is-info"
                   type="submit"
+                  onClick={() => {
+                    window.confirm(
+                      "Caution: This process can't be reversed! Are you sure to upload selected files?"
+                    );
+                  }}
                 >
                   <span className="icon is-small">
                     <FontAwesomeIcon color="white" icon={faUpload} />
@@ -1087,38 +1301,34 @@ function MainForm() {
                   <th>File Type</th>
                   <th>Upload Time</th>
                   <th>Uploaded By</th>
-                  <th>Action</th>
+                  <th>Progress</th>
                 </tr>
               </thead>
 
               <tbody>
-                {/* {fundersList.length == 0 && (
-                  <td className="has-text-centered">No funders added</td>
-                )} */}
-                <tr>
-                  <td>Screenshot from 2022-03-11 11-28-19.png</td>
-                  <td>Title Page</td>
-                  <td>{getFormattedTimeDate()}</td>
-                  <td>Ahmed Khan</td>
-                  <td>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(`Are you sure to delete author named?`)
-                        ) {
-                          // setAuthorsList(
-                          //   authorsList.filter(function (el) {
-                          //     return el.orcid != a.orcid;
-                          //   })
-                          // );
-                        }
-                      }}
-                      className="button is-danger is-round is-small"
-                    >
-                      <FontAwesomeIcon color="white" icon={faRemove} />
-                    </button>
-                  </td>
-                </tr>
+                {filesSelected.length == 0 && (
+                  <td className="has-text-centered">No files added</td>
+                )}
+                {filesSelected.map(
+                  (f, i) =>
+                    f.name !== "" && (
+                      <tr>
+                        <td>{f.name}</td>
+                        <td>{fileTypeSelect[i]}</td>
+                        <td>{getFormattedTimeDate()}</td>
+                        <td>{currentUser.displayName}</td>
+                        <td>
+                          <progress
+                            class="progress is-info"
+                            value="45"
+                            max="100"
+                          >
+                            45%
+                          </progress>
+                        </td>
+                      </tr>
+                    )
+                )}
               </tbody>
             </table>
             <div className="block" />
@@ -1231,12 +1441,111 @@ function MainForm() {
               </div>
             </div>
 
+            <div className="field">
+              <label className="label">
+                <strong>Has this manuscript submitted previously?</strong>
+                <span style={{ color: "red" }}>*</span>
+              </label>{" "}
+              <p className="control">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="isSubmittedPrev"
+                    value="yes"
+                    checked={forms[step - 1].data.isSubmittedPrev === "yes"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                  <span> Yes</span>
+                </label>
+              </p>
+              <p className="control">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="isSubmittedPrev"
+                    value="no"
+                    checked={forms[step - 1].data.isSubmittedPrev === "no"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                  <span> No</span>
+                </label>
+              </p>
+            </div>
+
+            {forms[step - 1].data.isSubmittedPrev === "yes" && (
+              <div class="field">
+                <div class="field-label">
+                  <label class="label">
+                    What is the Manuscript ID of the previous submission?
+                    <span style={{ color: "red" }}>*</span>
+                  </label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <p class="control">
+                      <input
+                        class="input"
+                        type="number"
+                        placeholder="ID"
+                        name="prevMansId"
+                        value={forms[step - 1].data.prevMansId}
+                        onChange={(e) => {
+                          handleInputs(e, step);
+                        }}
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="field">
+              <label className="label">
+                <strong>
+                  I/We have declared any potential conflict of interest in the
+                  research. Any support from a third party has been noted in the
+                  Acknowledgements.
+                </strong>
+                <span style={{ color: "red" }}>*</span>
+              </label>{" "}
+              <p className="control">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="thirdPartySupport"
+                    value="yes"
+                    checked={forms[step - 1].data.thirdPartySupport === "yes"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                  <span> Yes</span>
+                </label>
+              </p>
+              <p className="control">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="thirdPartySupport"
+                    value="no"
+                    checked={forms[step - 1].data.thirdPartySupport === "no"}
+                    onChange={(e) => {
+                      handleInputs(e, step);
+                    }}
+                  />
+                  <span> No</span>
+                </label>
+              </p>
+            </div>
+
             {/* Funding */}
 
             {/* Add Funding  */}
-            <label className="label">
-              Add Funding<span style={{ color: "red" }}>*</span>
-            </label>
+            <label className="label">Add Funding</label>
             {/* Modals */}
             {toggleFundingModal && (
               <div className="modal is-active is-clipped">
@@ -1315,8 +1624,8 @@ function MainForm() {
                   <footer className="modal-card-foot">
                     <button
                       onClick={() => {
-                        fundersList.push(funder);
-                        setFundersList(fundersList);
+                        forms[2].data.fundersList.push(funder);
+                        setForms(forms);
                         setToggleFundingModal(false);
                       }}
                       className="button is-info"
@@ -1325,6 +1634,117 @@ function MainForm() {
                     </button>
                     <button
                       onClick={() => setToggleFundingModal(false)}
+                      className="button"
+                    >
+                      Cancel
+                    </button>
+                  </footer>
+                </div>
+              </div>
+            )}
+
+            {toggleEditFundingModal && (
+              <div className="modal is-active is-clipped">
+                <div className="modal-background"></div>
+                <div className="modal-card">
+                  <header className="modal-card-head px-6">
+                    <p className="modal-card-title">Edit Funding</p>
+                    <button
+                      onClick={() => setToggleEditFundingModal(false)}
+                      className="delete"
+                      aria-label="close"
+                    ></button>
+                  </header>
+                  <section className="modal-card-body">
+                    <div className="field is-horizontal">
+                      {/* Find a Funder */}
+                      <div className="field-label is-normal">
+                        <label className="label">Edit Funder Name</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Find a Funder"
+                              name="findfunder"
+                              value={editFunder.findfunder}
+                              onChange={onInputChangeEditFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Award Number */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Award Number </label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="number"
+                              placeholder="Award Number "
+                              name="awardnumber"
+                              value={editFunder.awardnumber}
+                              onChange={onInputChangeEditFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Grant Recepient  */}
+                    <div className="field is-horizontal">
+                      <div className="field-label is-normal">
+                        <label className="label">Grant Recepient</label>
+                      </div>
+                      <div className="field-body">
+                        <div className="field">
+                          <div className="control">
+                            <input
+                              className="input"
+                              type="text"
+                              placeholder="Grant Recepient"
+                              name="grantrecep"
+                              value={editFunder.grantrecep}
+                              onChange={onInputChangeEditFunder}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <footer className="modal-card-foot">
+                    <button
+                      onClick={() => {
+                        let fundersNewList = forms[2].data.fundersList.filter(
+                          function (el) {
+                            return el.awardnumber !== editFunderId;
+                          }
+                        );
+                        fundersNewList.push(editFunder);
+
+                        forms[2] = {
+                          ...forms[2],
+                          data: {
+                            ...forms[2].data,
+                            fundersList: fundersNewList,
+                          },
+                        };
+
+                        setForms([...forms]);
+
+                        setToggleEditFundingModal(false);
+                      }}
+                      className="button is-info"
+                    >
+                      Edit Funder
+                    </button>
+                    <button
+                      onClick={() => setToggleEditFundingModal(false)}
                       className="button"
                     >
                       Cancel
@@ -1360,10 +1780,10 @@ function MainForm() {
                 <tr></tr>
               </tfoot>
               <tbody>
-                {fundersList.length == 0 && (
+                {forms[2].data.fundersList.length == 0 && (
                   <td className="has-text-centered">No funders added</td>
                 )}
-                {fundersList.map((f) => (
+                {forms[2].data.fundersList.map((f) => (
                   <tr>
                     <td>{f.findfunder}</td>
                     <td>{f.awardnumber}</td>
@@ -1371,16 +1791,39 @@ function MainForm() {
                     <td>
                       <button
                         onClick={() => {
+                          setEditFunderId(f.awardnumber);
+                          setEditFunder(
+                            forms[2].data.fundersList.find(
+                              (ff) => ff.awardnumber === f.awardnumber
+                            )
+                          );
+                          setToggleEditFundingModal(true);
+                        }}
+                        className="button is-info is-round is-small is-outlined"
+                        style={{ marginRight: 5 }}
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                      </button>
+                      <button
+                        onClick={() => {
                           if (
                             window.confirm(
                               `Are you sure to delete funder named ${f.findfunder}?`
                             )
                           ) {
-                            setFundersList(
-                              fundersList.filter(function (el) {
-                                return el.awardnumber != f.awardnumber;
-                              })
-                            );
+                            forms[2] = {
+                              ...forms[2],
+                              data: {
+                                ...forms[2].data,
+                                fundersList: forms[2].data.fundersList.filter(
+                                  function (el) {
+                                    return el.awardnumber != f.awardnumber;
+                                  }
+                                ),
+                              },
+                            };
+
+                            setForms([...forms]);
                           }
                         }}
                         className="button is-danger is-round is-small is-outlined"
@@ -1446,11 +1889,12 @@ function MainForm() {
         return (
           <ReviewAndSubmit
             form1Data={forms[0].data}
-            addedKeywords={addedKeywords}
-            authorsList={authorsList}
+            addedKeywords={forms[0].data.addedKeywords}
+            authorsList={forms[0].data.authorsList}
             filesSelected={filesSelected}
-            fundersList={fundersList}
+            fundersList={forms[2].data.fundersList}
             coverLetter={coverLetter}
+            fileTypeSelect={fileTypeSelect}
           />
         );
     }
@@ -1511,12 +1955,12 @@ function MainForm() {
               {/* Errors Notification */}
               {forms[step - 1].errors != null && (
                 <div class="notification is-danger is-light pl-6">
-                  <div className="subtitle">Errors:</div>
+                  <h3>
+                    <strong>Errors: </strong>
+                  </h3>
                   <ul style={{ listStyleType: "disc" }}>
                     {forms[step - 1].errors.map((e) => (
-                      <li>
-                        <strong>{e}</strong>
-                      </li>
+                      <li>{e}</li>
                     ))}
                   </ul>
                 </div>
