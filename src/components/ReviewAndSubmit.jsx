@@ -1,5 +1,8 @@
 import React from "react";
 
+import { createPDF, pdfArrayToBlob, mergePDF } from "pdf-actions";
+import { saveAs } from "file-saver";
+
 import { useAuth } from "../contexts/FirebaseContext";
 
 function ReviewAndSubmit({
@@ -12,6 +15,24 @@ function ReviewAndSubmit({
   fileTypeSelect,
 }) {
   const { currentUser } = useAuth();
+
+  const mergePDFHandler = async (fs) => {
+    console.log("files merging started");
+    let files = [];
+
+    files.push(await createPDF.PDFDocumentFromFile(fs[0]));
+    files.push(await createPDF.PDFDocumentFromFile(fs[1]));
+
+    const mergedPDFDocument = await mergePDF(files);
+
+    const mergedPdfFile = await mergedPDFDocument.save();
+
+    const pdfBlob = pdfArrayToBlob(mergedPdfFile);
+
+    saveAs(pdfBlob, "mergedFiles.pdf");
+
+    console.log("files merging ended", pdfBlob);
+  };
 
   const getFormattedTimeDate = () => {
     var today = new Date();
@@ -185,6 +206,16 @@ function ReviewAndSubmit({
           </tbody>
         </table>
       </div>
+
+      <button
+        onClick={() => {
+          mergePDFHandler(filesSelected);
+        }}
+        className="button is-info"
+      >
+        {" "}
+        Generate PDF Proof
+      </button>
     </div>
   );
 }

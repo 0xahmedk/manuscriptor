@@ -15,7 +15,6 @@ import {
   faEdit,
 } from "@fortawesome/free-solid-svg-icons";
 import CreatableSelect from "react-select/creatable";
-import LoadingOverlay from "react-loading-overlay";
 
 import { useAuth } from "../contexts/FirebaseContext";
 import FileUploadTester from "./FileUploadTester";
@@ -24,7 +23,7 @@ import ReviewAndSubmit from "./ReviewAndSubmit";
 function MainForm({ initialForm }) {
   let navigate = useNavigate();
 
-  const { currentUser } = useAuth();
+  const { currentUser, fileUploadStart, setDocs } = useAuth();
 
   const [submissionType, setSubmissionType] = useState("sada");
 
@@ -189,7 +188,7 @@ function MainForm({ initialForm }) {
           break;
         case 2:
           for (const f of filesSelected) {
-            if (f == "") {
+            if (f.name == "") {
               errs.push("Please Upload at least 4 files!");
               break;
             }
@@ -321,7 +320,6 @@ function MainForm({ initialForm }) {
   const [filesSelected, setFilesSelected] = useState(
     new Array(4).fill(new File([], "", {}))
   );
-  const [fileUploadLoading, setFileUploadLoading] = useState(false);
 
   const checkIfAllFilesSelected = () => {
     for (const element of filesSelected) {
@@ -1266,9 +1264,17 @@ function MainForm({ initialForm }) {
                   className="button is-info"
                   type="submit"
                   onClick={() => {
-                    window.confirm(
-                      "Caution: This process can't be reversed! Are you sure to upload selected files?"
-                    );
+                    if (
+                      window.confirm(
+                        "Caution: This process can't be reversed! Are you sure to upload selected files?"
+                      )
+                    ) {
+                      fileUploadStart(true);
+
+                      setTimeout(() => {
+                        fileUploadStart(false);
+                      }, 30000);
+                    }
                   }}
                 >
                   <span className="icon is-small">
@@ -1281,19 +1287,7 @@ function MainForm({ initialForm }) {
             </form>
 
             {/* Uploaded Files Table */}
-            <label className="label">
-              Uploaded Files
-              <span
-                style={{
-                  marginLeft: 5,
-                  padding: 3,
-                  backgroundColor: "green",
-                  borderRadius: 5,
-                }}
-              >
-                <FontAwesomeIcon color="white" icon={faCheck} size="1x" />
-              </span>
-            </label>
+            <label className="label">Uploaded Files</label>
             <table className="table is-striped is-hoverable">
               <thead>
                 <tr>
@@ -1301,7 +1295,6 @@ function MainForm({ initialForm }) {
                   <th>File Type</th>
                   <th>Upload Time</th>
                   <th>Uploaded By</th>
-                  <th>Progress</th>
                 </tr>
               </thead>
 
@@ -1317,15 +1310,6 @@ function MainForm({ initialForm }) {
                         <td>{fileTypeSelect[i]}</td>
                         <td>{getFormattedTimeDate()}</td>
                         <td>{currentUser.displayName}</td>
-                        <td>
-                          <progress
-                            class="progress is-info"
-                            value="45"
-                            max="100"
-                          >
-                            45%
-                          </progress>
-                        </td>
                       </tr>
                     )
                 )}
@@ -1902,171 +1886,164 @@ function MainForm({ initialForm }) {
 
   return (
     <>
-      {/* Loading Modal Wrapper */}
-      <LoadingOverlay
-        active={fileUploadLoading}
-        spinner
-        text="Upload files please wait a bit..."
+      <div
+        style={{
+          marginTop: 50,
+          marginRight: "10%",
+          marginLeft: "10%",
+          padding: 35,
+          border: "1px solid #ccc",
+          borderRadius: 20,
+          paddingBottom: submissionType == "" ? 200 : 20,
+        }}
       >
-        <div
-          style={{
-            marginTop: 50,
-            marginRight: "10%",
-            marginLeft: "10%",
-            padding: 35,
-            border: "1px solid #ccc",
-            borderRadius: 20,
-            paddingBottom: submissionType == "" ? 200 : 20,
-          }}
-        >
-          <div className="title">Submission</div>
+        <div className="title">Submission</div>
 
-          {/* Submission Category */}
-          {submissionType == "" ? (
-            <>
-              <div className="subtitle">
-                Please choose a category for your paper.
+        {/* Submission Category */}
+        {submissionType == "" ? (
+          <>
+            <div className="subtitle">
+              Please choose a category for your paper.
+            </div>
+            <div className="select">
+              <select
+                value={submissionType}
+                onChange={(e) => {
+                  if (e.target.value == "Select Submission Type") {
+                    setSubmissionType("");
+                  } else {
+                    setSubmissionType(e.target.value);
+                  }
+                }}
+                disabled={submissionType != "" ? true : false}
+              >
+                <option>Select Submission Type</option>
+                <option>Case Study</option>
+                <option>Research Paper</option>
+                <option>Technical Paper</option>
+                <option>Select Submission Type</option>
+              </select>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Stepper*/}
+            <div className="subtitle">{submissionType}</div>
+            {/* <FileUploadTester /> */}
+            {/* Errors Notification */}
+            {forms[step - 1].errors != null && (
+              <div class="notification is-danger is-light pl-6">
+                <h3>
+                  <strong>Errors: </strong>
+                </h3>
+                <ul style={{ listStyleType: "disc" }}>
+                  {forms[step - 1].errors.map((e) => (
+                    <li>{e}</li>
+                  ))}
+                </ul>
               </div>
-              <div className="select">
-                <select
-                  value={submissionType}
-                  onChange={(e) => {
-                    if (e.target.value == "Select Submission Type") {
-                      setSubmissionType("");
-                    } else {
-                      setSubmissionType(e.target.value);
-                    }
-                  }}
-                  disabled={submissionType != "" ? true : false}
-                >
-                  <option>Select Submission Type</option>
-                  <option>Case Study</option>
-                  <option>Research Paper</option>
-                  <option>Technical Paper</option>
-                  <option>Select Submission Type</option>
-                </select>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Stepper*/}
-              <div className="subtitle">{submissionType}</div>
-              {/* <FileUploadTester /> */}
-              {/* Errors Notification */}
-              {forms[step - 1].errors != null && (
-                <div class="notification is-danger is-light pl-6">
-                  <h3>
-                    <strong>Errors: </strong>
-                  </h3>
-                  <ul style={{ listStyleType: "disc" }}>
-                    {forms[step - 1].errors.map((e) => (
-                      <li>{e}</li>
-                    ))}
-                  </ul>
-                </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-around",
+                alignItems: "center",
+                position: "relative",
+                marginTop: 5,
+                marginBottom: 30,
+              }}
+            >
+              {renderStepperButton(
+                "Metadata",
+                decideStepperButtonColor(0),
+                decideStepperButtonIcon(0),
+                1
+              )}
+              {renderStepperButton(
+                "Upload Files",
+                decideStepperButtonColor(1),
+                decideStepperButtonIcon(1),
+                2
+              )}
+              {renderStepperButton(
+                "Details & Comments",
+                decideStepperButtonColor(2),
+                decideStepperButtonIcon(2),
+                3
+              )}
+              {renderStepperButton(
+                "Review Your Submission",
+                decideStepperButtonColor(3),
+                decideStepperButtonIcon(3),
+                4
               )}
 
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  alignItems: "center",
-                  position: "relative",
-                  marginTop: 5,
-                  marginBottom: 30,
+                  width: "75%",
+                  height: 4,
+                  backgroundColor: "#000",
+                  position: "absolute",
+                  top: "25%",
+                  zIndex: 0,
                 }}
-              >
-                {renderStepperButton(
-                  "Metadata",
-                  decideStepperButtonColor(0),
-                  decideStepperButtonIcon(0),
-                  1
-                )}
-                {renderStepperButton(
-                  "Upload Files",
-                  decideStepperButtonColor(1),
-                  decideStepperButtonIcon(1),
-                  2
-                )}
-                {renderStepperButton(
-                  "Details & Comments",
-                  decideStepperButtonColor(2),
-                  decideStepperButtonIcon(2),
-                  3
-                )}
-                {renderStepperButton(
-                  "Review Your Submission",
-                  decideStepperButtonColor(3),
-                  decideStepperButtonIcon(3),
-                  4
-                )}
+              />
+            </div>
+            {error.length > 0 && (
+              <div className="notification is-danger is-light">{error}</div>
+            )}
 
-                <div
-                  style={{
-                    width: "75%",
-                    height: 4,
-                    backgroundColor: "#000",
-                    position: "absolute",
-                    top: "25%",
-                    zIndex: 0,
-                  }}
-                />
-              </div>
-              {error.length > 0 && (
-                <div className="notification is-danger is-light">{error}</div>
-              )}
-
-              {renderFormBody(step)}
-              <div className="block" />
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "flex-end",
-                  marginTop: 35,
+            {renderFormBody(step)}
+            <div className="block" />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                marginTop: 35,
+              }}
+            >
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Are you sure to leave? Entered data will be lost!`
+                    )
+                  ) {
+                    navigate("/");
+                  }
                 }}
+                className="button is-light"
               >
-                <button
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Are you sure to leave? Entered data will be lost!`
-                      )
-                    ) {
-                      navigate("/");
-                    }
-                  }}
-                  className="button is-light"
-                >
-                  Cancel
-                </button>
-                <button
-                  style={{ marginLeft: 5 }}
-                  onClick={() => {
-                    if (
-                      window.confirm(`Are you sure to leave and save data?`)
-                    ) {
-                      navigate("/");
-                    }
-                  }}
-                  className="button is-info is-light"
-                >
-                  Save Progress & Leave
-                </button>
-                <button
-                  style={{ marginLeft: 5 }}
-                  onClick={handleSubmission}
-                  disabled={loading}
-                  className="button is-info is-right"
-                >
-                  {step == 4 ? "Submit Paper" : "Next"}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </LoadingOverlay>
+                Cancel
+              </button>
+              <button
+                style={{ marginLeft: 5 }}
+                onClick={() => {
+                  if (window.confirm(`Are you sure to leave and save data?`)) {
+                    navigate("/");
+                  }
+                }}
+                className="button is-info is-light"
+              >
+                Save Progress & Leave
+              </button>
+              <button
+                style={{ marginLeft: 5 }}
+                onClick={async () => {
+                  await setDocs({ formsData: forms });
+                }}
+                disabled={loading}
+                className="button is-info is-right"
+              >
+                {step == 4 ? "Submit Paper" : "Next"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </>
   );
 }

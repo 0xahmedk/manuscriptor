@@ -53,8 +53,8 @@ function Header() {
               Home
             </Link>
 
-            <Link to={{ pathname: "/authors" }} className="navbar-item">
-              Authors
+            <Link to={{ pathname: "/submissions" }} className="navbar-item">
+              Submissions
             </Link>
           </div>
         )}
@@ -68,7 +68,7 @@ function Header() {
                     className="navbar-link"
                     style={{
                       color: "white",
-                      marginRight: 15,
+                      marginRight: 35,
                       textTransform: "capitalize",
                       fontWeight: "bold",
                     }}

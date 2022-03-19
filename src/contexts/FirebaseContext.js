@@ -1,4 +1,6 @@
 import { sendPasswordResetEmail } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+
 import React, { useContext, useState, useEffect } from "react";
 import {
   auth,
@@ -6,6 +8,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  colRef,
+  db,
 } from "../firebase";
 
 const FirebaseContext = React.createContext();
@@ -17,6 +21,15 @@ export function useAuth() {
 export function FirebaseProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(true);
+  const [fileUploadLoading, setFileUploadLoading] = useState(false);
+
+  function fileUploadStart(action) {
+    setFileUploadLoading(action);
+  }
+
+  function setDocs(data) {
+    return setDoc(doc(db, "usersData", currentUser.uid), data);
+  }
 
   function signup(email, password) {
     return createUserWithEmailAndPassword(auth, email, password);
@@ -62,6 +75,9 @@ export function FirebaseProvider({ children }) {
     logout,
     forgotPassword,
     auth,
+    fileUploadStart,
+    fileUploadLoading,
+    setDocs,
     // resetPassword,
     // updateEmail,
     // updatePassword,

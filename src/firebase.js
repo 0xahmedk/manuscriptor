@@ -37,6 +37,8 @@ const auth = getAuth();
 
 const storage = getStorage(app);
 
+const colRef = collection(db, "usersData");
+
 export {
   auth,
   signInWithEmailAndPassword,
@@ -45,6 +47,8 @@ export {
   createUserWithEmailAndPassword,
   storage,
   ref,
+  colRef,
+  db,
 };
 
 // const colRef = collection()
