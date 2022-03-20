@@ -16,11 +16,7 @@ function App() {
   return (
     <div>
       {/* Loading Modal Wrapper */}
-      <LoadingOverlay
-        active={fileUploadLoading}
-        spinner
-        text="Uploading files please wait a bit..."
-      >
+      <LoadingOverlay active={fileUploadLoading} spinner text="Please wait...">
         <Header />
         <WelcomePage />
         <Footer />

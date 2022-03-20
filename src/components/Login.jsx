@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
 
 import { useAuth } from "../contexts/FirebaseContext";
+import SideLogo from "./SideLogo";
 
 function Login() {
   const [viewPassword, setViewPassword] = useState(false);
@@ -54,124 +55,135 @@ function Login() {
   };
 
   return (
-    <div
-      style={{
-        marginTop: 50,
-        marginRight: "30%",
-        marginLeft: "30%",
-        padding: 35,
-        border: "1px solid #ccc",
-        borderRadius: 20,
-      }}
-    >
-      <div className="title">Login</div>
+    <div className="columns">
+      <div className="column is-half">
+        <div
+          style={{
+            marginTop: 50,
+            marginRight: "5%",
+            marginLeft: "5%",
+            padding: 35,
+            border: "1px solid #ccc",
+            borderRadius: 20,
+          }}
+        >
+          <div className="title">Login</div>
 
-      {error.length > 0 && (
-        <div className="notification is-danger is-light">{error}</div>
-      )}
+          {error.length > 0 && (
+            <div className="notification is-danger is-light">{error}</div>
+          )}
 
-      {success.length > 0 && (
-        <div class="notification is-success is-light">
-          <button onClick={() => setSuccess(false)} class="delete"></button>
-          {success}
-        </div>
-      )}
+          {success.length > 0 && (
+            <div class="notification is-success is-light">
+              <button onClick={() => setSuccess(false)} class="delete"></button>
+              {success}
+            </div>
+          )}
 
-      <div className="field">
-        <label class="label">
-          Email <span style={{ color: "red" }}>*</span>{" "}
-        </label>
-        <p className="control has-icons-left">
-          <input
-            required
-            className="input"
-            type="email"
-            placeholder="Email"
-            name="email"
-            value={email}
-            onChange={onInputChange}
-          />
-          <span className="icon is-small is-left">
-            <FontAwesomeIcon icon={faEnvelope} />
-          </span>
-        </p>
-      </div>
-      <div className="field">
-        <label class="label">
-          Password <span style={{ color: "red" }}>*</span>
-        </label>
-        <p className="control has-icons-left has-icons-right">
-          <input
-            required
-            className="input"
-            type={viewPassword ? "text" : "password"}
-            placeholder="Password"
-            name="password"
-            value={password}
-            onChange={onInputChange}
-          />
-          <span className="icon is-small is-left">
-            <FontAwesomeIcon icon={faLock} />
-          </span>
-          <i
+          <div className="field">
+            <label class="label">
+              Email <span style={{ color: "red" }}>*</span>{" "}
+            </label>
+            <p className="control has-icons-left">
+              <input
+                required
+                className="input"
+                type="email"
+                placeholder="Email"
+                name="email"
+                value={email}
+                onChange={onInputChange}
+              />
+              <span className="icon is-small is-left">
+                <FontAwesomeIcon icon={faEnvelope} />
+              </span>
+            </p>
+          </div>
+          <div className="field">
+            <label class="label">
+              Password <span style={{ color: "red" }}>*</span>
+            </label>
+            <p className="control has-icons-left has-icons-right">
+              <input
+                required
+                className="input"
+                type={viewPassword ? "text" : "password"}
+                placeholder="Password"
+                name="password"
+                value={password}
+                onChange={onInputChange}
+              />
+              <span className="icon is-small is-left">
+                <FontAwesomeIcon icon={faLock} />
+              </span>
+              <i
+                style={{
+                  position: "absolute",
+                  top: 7,
+                  right: 10,
+                  color: viewPassword ? "black" : "#7774",
+                }}
+                onClick={() => setViewPassword(!viewPassword)}
+              >
+                <FontAwesomeIcon icon={faEye} />
+              </i>
+            </p>
+          </div>
+
+          <div class="field ">
+            <div class="control">
+              <a
+                onClick={() => {
+                  if (email !== "") {
+                    forgotPassword(email);
+                    setState({ ...state, email: "" });
+                    setError("");
+                    setSuccess(
+                      "A reset link has been sent to your email, follow along that link"
+                    );
+                  } else {
+                    setSuccess("");
+                    setError("Please enter email first!");
+                  }
+                }}
+                to={{ pathname: "/" }}
+              >
+                Reset Password
+              </a>
+            </div>
+          </div>
+
+          <div
             style={{
-              position: "absolute",
-              top: 7,
-              right: 10,
-              color: viewPassword ? "black" : "#7774",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginTop: 35,
             }}
-            onClick={() => setViewPassword(!viewPassword)}
           >
-            <FontAwesomeIcon icon={faEye} />
-          </i>
-        </p>
-      </div>
+            <button
+              disabled={loading}
+              onClick={handleLogin}
+              class="button is-info"
+            >
+              Login
+            </button>
+          </div>
 
-      <div class="field ">
-        <div class="control">
-          <a
-            onClick={() => {
-              if (email !== "") {
-                forgotPassword(email);
-                setState({ ...state, email: "" });
-                setError("");
-                setSuccess(
-                  "A reset link has been sent to your email, follow along that link"
-                );
-              } else {
-                setSuccess("");
-                setError("Please enter email first!");
-              }
-            }}
-            to={{ pathname: "/" }}
-          >
-            Reset Password
-          </a>
+          <div class="field" style={{ marginTop: 50 }}>
+            <p class="control">
+              <span className="block" style={{ alignSelf: "flex-end" }}>
+                Don't have an account?{" "}
+                <Link to={{ pathname: "/register" }} href="#">
+                  Register!
+                </Link>
+              </span>
+            </p>
+          </div>
         </div>
       </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          marginTop: 35,
-        }}
-      >
-        <button disabled={loading} onClick={handleLogin} class="button is-info">
-          Login
-        </button>
-      </div>
-
-      <div class="field" style={{ marginTop: 50 }}>
-        <p class="control">
-          <span className="block" style={{ alignSelf: "flex-end" }}>
-            Don't have an account?{" "}
-            <Link to={{ pathname: "/register" }} href="#">
-              Register!
-            </Link>
-          </span>
-        </p>
+      <div className="column is-half">
+        <SideLogo />
       </div>
     </div>
   );

@@ -13,17 +13,27 @@ import {
   faRemove,
   faUpload,
   faEdit,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import CreatableSelect from "react-select/creatable";
+import { createPDF, pdfArrayToBlob, mergePDF } from "pdf-actions";
+import { saveAs } from "file-saver";
 
 import { useAuth } from "../contexts/FirebaseContext";
 import FileUploadTester from "./FileUploadTester";
 import ReviewAndSubmit from "./ReviewAndSubmit";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { storage } from "../firebase";
 
 function MainForm({ initialForm }) {
   let navigate = useNavigate();
 
-  const { currentUser, fileUploadStart, setDocs } = useAuth();
+  const { currentUser, fileUploadStart, addPaper } = useAuth();
 
   const [submissionType, setSubmissionType] = useState("sada");
 
@@ -66,6 +76,30 @@ function MainForm({ initialForm }) {
       }
     }
     return icon;
+  };
+
+  const mergePDFHandler = async (fs) => {
+    if (fs[0].name === "") return;
+
+    fileUploadStart(true);
+    let files = [];
+
+    files.push(await createPDF.PDFDocumentFromFile(fs[0]));
+    files.push(await createPDF.PDFDocumentFromFile(fs[1]));
+
+    const mergedPDFDocument = await mergePDF(files);
+
+    const mergedPdfFile = await mergedPDFDocument.save();
+
+    const pdfBlob = pdfArrayToBlob(mergedPdfFile);
+
+    uploadFile(pdfBlob);
+
+    saveAs(pdfBlob, "submitted_paper_proof.pdf");
+
+    console.log("files merging ended", pdfBlob);
+    fileUploadStart(false);
+    setSubmitDisable(false);
   };
 
   const [author, setAuthor] = useState({
@@ -115,7 +149,7 @@ function MainForm({ initialForm }) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitDisable, setSubmitDisable] = useState(true);
 
   const addErrorsToFormsState = (errs, step) => {
     forms[step - 1] = {
@@ -331,38 +365,22 @@ function MainForm({ initialForm }) {
   const [progress, setProgress] = useState(0);
   const [url, setURL] = useState("");
 
-  const handleFiles = (e) => {
-    e.preventDefault();
+  const uploadFile =  (file) => {
+    if (!file) return;
 
-    let files = [];
-    if (e.target.name === "resume") {
-      console.log(e.target.file);
-    }
+    const storageRef = ref(storage, `/files/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      () => {},
+      (err) => console.log(err),
+      async () => {
+        await getDownloadURL(uploadTask.snapshot.ref).then((u) => setURL(u));
+        console.log(url);
+      }
+    );
   };
-
-  // const uploadFile = (file) => {
-  //   if (!file) return;
-
-  //   const storageRef = ref(storage, `/files/${file.name}`);
-  //   const uploadTask = uploadBytesResumable(storageRef, file);
-
-  //   uploadTask.on(
-  //     "state_changed",
-  //     (snapshot) => {
-  //       const prog = Math.round(
-  //         (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-  //       );
-  //       setProgress(prog);
-  //     },
-  //     (err) => console.log(err),
-  //     () => {
-  //       getDownloadURL(uploadTask.snapshot.ref).then((u) => setURL(u));
-  //       console.log(url);
-  //     }
-  //   );
-
-  //   return { url, progress };
-  // };
 
   const getFormattedTimeDate = () => {
     var today = new Date();
@@ -1121,170 +1139,164 @@ function MainForm({ initialForm }) {
             {/* Upload Files */}
 
             {/* Pick Files */}
-            <form onSubmit={handleFiles}>
-              <label className="label">
-                Pick Files<span style={{ color: "red" }}>*</span>
-              </label>
-              <table className="table is-striped is-hoverable">
-                <thead>
-                  <tr>
-                    <th>File Type</th>
-                    <th>File</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
+            <label className="label">
+              Pick Files<span style={{ color: "red" }}>*</span>
+            </label>
+            <table className="table is-striped is-hoverable">
+              <thead>
+                <tr>
+                  <th>File Type</th>
+                  <th>File</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {filesSelected.map((_, i) => (
-                    <tr key={i}>
-                      <td>
-                        <div className="select">
-                          <select
-                            value={fileTypeSelect[i]}
-                            onChange={(e) => {
-                              if (e.target.value == "Select File Type") {
-                                fileTypeSelect[i] = "";
-                                setFileTypeSelect([...fileTypeSelect]);
-                              } else {
-                                fileTypeSelect[i] = e.target.value;
-                                setFileTypeSelect([...fileTypeSelect]);
-                              }
-                            }}
-                            disabled={
-                              filesSelected[i].name !== "" ? true : false
+              <tbody>
+                {filesSelected.map((_, i) => (
+                  <tr key={i}>
+                    <td>
+                      <div className="select">
+                        <select
+                          value={fileTypeSelect[i]}
+                          onChange={(e) => {
+                            if (e.target.value == "Select File Type") {
+                              fileTypeSelect[i] = "";
+                              setFileTypeSelect([...fileTypeSelect]);
+                            } else {
+                              fileTypeSelect[i] = e.target.value;
+                              setFileTypeSelect([...fileTypeSelect]);
                             }
-                          >
-                            <option>Select File Type</option>
-                            <option value="Title Page">Title Page</option>
-                            <option>Article File</option>
-                            <option>Figure</option>
-                            <option>Table</option>
-                            <option>Author Biography</option>
-                            <option>Suplementary File not for Review</option>
-                          </select>
-                        </div>
-                      </td>
-                      <td>
-                        {fileTypeSelect[i] !== "" &&
-                          (filesSelected[i].name === "" ? (
-                            <div className="file has-name">
-                              <label className="file-label">
-                                <input
-                                  className="file-input"
-                                  type="file"
-                                  name="resume"
-                                  accept=".doc, .pdf, .docx"
-                                  onChange={(e) => {
-                                    filesSelected[i] = e.target.files[0];
-                                    setFilesSelected([...filesSelected]);
-                                  }}
-                                />
-                                <span className="file-cta">
-                                  <span className="file-icon">
-                                    <FontAwesomeIcon
-                                      color="black"
-                                      icon={faUpload}
-                                    />
-                                  </span>
-                                  <span className="file-label">
-                                    Choose a file…
-                                  </span>
+                          }}
+                          disabled={filesSelected[i].name !== "" ? true : false}
+                        >
+                          <option>Select File Type</option>
+                          <option value="Title Page">Title Page</option>
+                          <option>Article File</option>
+                          <option>Figure</option>
+                          <option>Table</option>
+                          <option>Author Biography</option>
+                          <option>Suplementary File not for Review</option>
+                        </select>
+                      </div>
+                    </td>
+                    <td>
+                      {fileTypeSelect[i] !== "" &&
+                        (filesSelected[i].name === "" ? (
+                          <div className="file has-name">
+                            <label className="file-label">
+                              <input
+                                className="file-input"
+                                type="file"
+                                name="resume"
+                                accept=".doc, .pdf, .docx"
+                                onChange={(e) => {
+                                  filesSelected[i] = e.target.files[0];
+                                  setFilesSelected([...filesSelected]);
+                                }}
+                              />
+                              <span className="file-cta">
+                                <span className="file-icon">
+                                  <FontAwesomeIcon
+                                    color="black"
+                                    icon={faUpload}
+                                  />
                                 </span>
-                                <span className="file-name">
-                                  {filesSelected[i].name}
+                                <span className="file-label">
+                                  Choose a file…
                                 </span>
-                              </label>
-                            </div>
-                          ) : (
-                            <div className="file has-name is-success">
-                              <label className="file-label">
-                                <input
-                                  className="file-input"
-                                  type="file"
-                                  name="resume"
-                                  accept=".doc, .pdf, .docx"
-                                  onChange={(e) => {
-                                    filesSelected[i] = e.target.files[0];
-                                    setFilesSelected([...filesSelected]);
-                                  }}
-                                />
-                                <span className="file-cta">
-                                  <span className="file-icon">
-                                    <FontAwesomeIcon
-                                      color="white"
-                                      icon={faUpload}
-                                    />
-                                  </span>
-                                  <span className="file-label">
-                                    Change file…
-                                  </span>
+                              </span>
+                              <span className="file-name">
+                                {filesSelected[i].name}
+                              </span>
+                            </label>
+                          </div>
+                        ) : (
+                          <div className="file has-name is-success">
+                            <label className="file-label">
+                              <input
+                                className="file-input"
+                                type="file"
+                                name="resume"
+                                accept=".doc, .pdf, .docx"
+                                onChange={(e) => {
+                                  filesSelected[i] = e.target.files[0];
+                                  setFilesSelected([...filesSelected]);
+                                }}
+                              />
+                              <span className="file-cta">
+                                <span className="file-icon">
+                                  <FontAwesomeIcon
+                                    color="white"
+                                    icon={faUpload}
+                                  />
                                 </span>
-                                <span className="file-name">
-                                  {filesSelected[i].name}
-                                </span>
-                              </label>
-                            </div>
-                          ))}
-                      </td>
-                      <td>
-                        {filesSelected[i].name !== "" && (
-                          <button
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Are you sure to remove file named ${filesSelected[i]}?`
-                                )
-                              ) {
-                                filesSelected[i] = new File([], "", {});
-                                setFileTypeSelect[i] = "";
-                                setFilesSelected([...filesSelected]);
-                              }
-                            }}
-                            className="button is-danger is-round is-small is-outlined"
-                          >
-                            <FontAwesomeIcon icon={faRemove} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                                <span className="file-label">Change file…</span>
+                              </span>
+                              <span className="file-name">
+                                {filesSelected[i].name}
+                              </span>
+                            </label>
+                          </div>
+                        ))}
+                    </td>
+                    <td>
+                      {filesSelected[i].name !== "" && (
+                        <button
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `Are you sure to remove file named ${filesSelected[i]}?`
+                              )
+                            ) {
+                              filesSelected[i] = new File([], "", {});
+                              setFileTypeSelect[i] = "";
+                              setFilesSelected([...filesSelected]);
+                            }
+                          }}
+                          className="button is-danger is-round is-small is-outlined"
+                        >
+                          <FontAwesomeIcon icon={faRemove} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-              {/* Upload Button */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "flex-end",
+            {/* Upload Button */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                // disabled={checkIfAllFilesSelected() ? true : false}
+                className="button is-info"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Caution: This process can't be reversed! Are you sure to upload selected files?"
+                    )
+                  ) {
+                    fileUploadStart(true);
+                    uploadFile(filesSelected[0]);
+
+                    setTimeout(() => {
+                      fileUploadStart(false);
+                    }, 30000);
+                  }
                 }}
               >
-                <button
-                  disabled={checkIfAllFilesSelected() ? true : false}
-                  className="button is-info"
-                  type="submit"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Caution: This process can't be reversed! Are you sure to upload selected files?"
-                      )
-                    ) {
-                      fileUploadStart(true);
-
-                      setTimeout(() => {
-                        fileUploadStart(false);
-                      }, 30000);
-                    }
-                  }}
-                >
-                  <span className="icon is-small">
-                    <FontAwesomeIcon color="white" icon={faUpload} />
-                  </span>
-                  <span>Upload Selected Files</span>
-                </button>
-              </div>
-              <div className="block" />
-            </form>
+                <span className="icon is-small">
+                  <FontAwesomeIcon color="white" icon={faUpload} />
+                </span>
+                <span>Upload Selected Files</span>
+              </button>
+            </div>
+            <div className="block" />
 
             {/* Uploaded Files Table */}
             <label className="label">Uploaded Files</label>
@@ -1997,6 +2009,18 @@ function MainForm({ initialForm }) {
 
             {renderFormBody(step)}
             <div className="block" />
+
+            {step === 4 && (
+              <button
+                onClick={() => {
+                  mergePDFHandler(filesSelected);
+                }}
+                className="button is-info"
+              >
+                <FontAwesomeIcon icon={faDownload} style={{ marginRight: 5 }} />
+                Generate PDF Proof
+              </button>
+            )}
             <div
               style={{
                 display: "flex",
@@ -2021,21 +2045,46 @@ function MainForm({ initialForm }) {
               </button>
               <button
                 style={{ marginLeft: 5 }}
-                onClick={() => {
+                onClick={async () => {
                   if (window.confirm(`Are you sure to leave and save data?`)) {
-                    navigate("/");
+                    try {
+                      fileUploadStart(true);
+                      await addPaper({
+                        id: currentUser.uid,
+                        forms,
+                        status: "drafted",
+                      }).then(() => {
+                        fileUploadStart(false);
+                        navigate("/submissions");
+                      });
+                    } catch (err) {
+                      console.log(err);
+                    }
                   }
                 }}
                 className="button is-info is-light"
               >
                 Save Progress & Leave
               </button>
+
               <button
                 style={{ marginLeft: 5 }}
                 onClick={async () => {
-                  await setDocs({ formsData: forms });
+                  try {
+                    fileUploadStart(true);
+                    await addPaper({
+                      id: currentUser.uid,
+                      forms,
+                      status: "completed",
+                    }).then(() => {
+                      fileUploadStart(false);
+                      navigate("/success");
+                    });
+                  } catch (err) {
+                    console.log(err);
+                  }
                 }}
-                disabled={loading}
+                // disabled={submitDisable && step === 4}
                 className="button is-info is-right"
               >
                 {step == 4 ? "Submit Paper" : "Next"}

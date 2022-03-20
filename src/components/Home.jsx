@@ -7,10 +7,6 @@ function Home() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
 
-  const queryString = window.location.search;
-
-  const urlParams = new URLSearchParams(queryString);
-
   return (
     <div className="container">
       {error.length > 0 && (
@@ -21,9 +17,7 @@ function Home() {
           <div className="hero-body">
             {currentUser ? (
               <div className="">
-                <img src={urlParams.get("logo")} alt="" srcset="" />
-                <div>{urlParams.get("name")}</div>
-                <div>{urlParams.get("details")}</div>
+                <p className="title">Hi, {currentUser.displayName}</p>
                 <p className="title">
                   You are all set now with your account you can start submission
                   now by clicking button below

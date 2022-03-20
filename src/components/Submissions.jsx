@@ -1,14 +1,41 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronRight, faSadTear } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faChevronRight,
+  faSadTear,
+  faEdit,
+} from "@fortawesome/free-solid-svg-icons";
+
+import { onSnapshot, query, where, collection } from "firebase/firestore";
+
+import { useAuth } from "../contexts/FirebaseContext";
+import { db } from "../firebase";
 
 function Submissions() {
-  const [submission, setSubmission] = useState([
-    { title: "ADsasdfsdfsdf sdf s df", time: "22-02-2022" },
-    { title: "ADsasdfsdfsdf sdf s df", time: "22-02-2022" },
-    { title: "ADsasdfsdfsdf sdf s df", time: "22-02-2022" },
-  ]);
+  const [submittedForms, setSubmittedForms] = useState([]);
+
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    if (currentUser) {
+      const formsRef = collection(db, "papers");
+      const q = query(formsRef, where("id", "==", currentUser?.uid));
+      var unsubscribe = onSnapshot(q, (snapshot) => {
+        let forms = [];
+        snapshot.docs.map((doc) => {
+          forms.push({ ...doc.data() });
+        });
+        setSubmittedForms(forms);
+        console.log(forms);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, []);
 
   return (
     <div style={{ marginBottom: 280, marginTop: 50 }}>
@@ -25,22 +52,54 @@ function Submissions() {
                   <th></th>
                   <th>Status</th>
                   <th>Title</th>
-                  <th>Submit Time</th>
+                  <th>Author</th>
                   <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {submission.map((s, i) => (
+                {submittedForms.map((s, i) => (
                   <tr>
                     <td>{i + 1}</td>
-                    <td>Completed</td>
-                    <td>{s.title}</td>
-                    <td>{s.time}</td>
                     <td>
-                      <a href="/">
-                        View Document <FontAwesomeIcon icon={faChevronRight} />
-                      </a>
+                      {s.status === "completed" ? (
+                        <span style={{ color: "green" }}>
+                          <FontAwesomeIcon
+                            style={{ marginRight: 3 }}
+                            icon={faCheck}
+                          />
+                          Completed
+                        </span>
+                      ) : (
+                        <span style={{ color: "orange" }}>
+                          <FontAwesomeIcon
+                            style={{ marginRight: 3 }}
+                            icon={faEdit}
+                          />
+                          Drafted
+                        </span>
+                      )}
+                    </td>
+                    <td>{s.forms[0].data.title}</td>
+                    <td>{s.forms[0].data.authorsList[0].name}</td>
+                    <td>
+                      {s.status === "completed" ? (
+                        <a href="/">
+                          View Document
+                          <FontAwesomeIcon
+                            style={{ marginLeft: 3 }}
+                            icon={faChevronRight}
+                          />
+                        </a>
+                      ) : (
+                        <a href="/">
+                          Continue
+                          <FontAwesomeIcon
+                            style={{ marginLeft: 3 }}
+                            icon={faChevronRight}
+                          />
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -48,7 +107,7 @@ function Submissions() {
             </table>
           </div>
         </div>
-        {submission.length == 0 && (
+        {submittedForms.length === 0 && (
           <div className="card-content">
             <section className="section">
               <div className="content has-text-grey has-text-centered">

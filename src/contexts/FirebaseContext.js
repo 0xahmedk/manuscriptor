@@ -1,5 +1,13 @@
 import { sendPasswordResetEmail } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  addDoc,
+  setDoc,
+  onSnapshot,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 
 import React, { useContext, useState, useEffect } from "react";
 import {
@@ -8,7 +16,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  colRef,
+  papersColRef,
+  usersColRef,
   db,
 } from "../firebase";
 
@@ -20,6 +29,8 @@ export function useAuth() {
 
 export function FirebaseProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
+  const [userData, setUserData] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [fileUploadLoading, setFileUploadLoading] = useState(false);
 
@@ -27,8 +38,12 @@ export function FirebaseProvider({ children }) {
     setFileUploadLoading(action);
   }
 
-  function setDocs(data) {
-    return setDoc(doc(db, "usersData", currentUser.uid), data);
+  function addPaper(data) {
+    return addDoc(papersColRef, data);
+  }
+
+  function addUser(data) {
+    return setDoc(usersColRef, data, auth.currentUser.uid);
   }
 
   function signup(email, password) {
@@ -68,6 +83,23 @@ export function FirebaseProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser?.uid);
+      var unsubscribe = onSnapshot(userRef, (user) => {
+        if (user.exists()) {
+          setUserData(user.data().forms);
+        } else {
+          console.log("No users");
+        }
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [currentUser]);
+
   const value = {
     currentUser,
     login,
@@ -77,10 +109,9 @@ export function FirebaseProvider({ children }) {
     auth,
     fileUploadStart,
     fileUploadLoading,
-    setDocs,
-    // resetPassword,
-    // updateEmail,
-    // updatePassword,
+    addPaper,
+    addUser,
+    userData,
   };
 
   return (

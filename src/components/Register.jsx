@@ -18,11 +18,14 @@ import Select from "react-select";
 import { countries } from "../modules/countries";
 import { getUnis } from "../modules/universities";
 import { useAuth } from "../contexts/FirebaseContext";
+import SideLogo from "./SideLogo";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { db, usersColRef } from "../firebase";
 
 function Register() {
   const [viewPassword1, setViewPassword1] = useState(false);
@@ -192,9 +195,7 @@ function Register() {
           if (forms[0].data.firstName === "") {
             errs.push("Please enter your First Name");
           }
-          if (forms[0].data.middleName === "") {
-            errs.push("Please enter your Middle Name");
-          }
+
           if (forms[0].data.lastName === "") {
             errs.push("Please enter your Last Name");
           }
@@ -252,8 +253,6 @@ function Register() {
         return;
       }
 
-      
-
       setErrorsToNull(step);
 
       //Register
@@ -261,7 +260,7 @@ function Register() {
     }
   }
 
-  const { auth, signup, currentUser } = useAuth();
+  const { auth, addUser, fileUploadStart } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -280,24 +279,35 @@ function Register() {
 
     setError("");
     setLoading(true);
+    fileUploadStart(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password).then(() => {
-        sendEmailVerification(auth.currentUser)
-          .then(() => {
-            alert("Email verification link send to your email address!");
-          })
-          .catch((err) => alert(err.message));
-        updateProfile(auth.currentUser, {
-          displayName: forms[0].data,
-        });
-        setSuccess(true);
-        setTimeout(() => {
-          // console.log("thenWala", user);
+      await createUserWithEmailAndPassword(auth, email, password).then(
+        async () => {
+          updateProfile(auth.currentUser, {
+            displayName: forms[0].data.firstName,
+          });
 
-          navigate("/login");
-        }, 5000);
-      });
+          await setDoc(doc(db, "users", auth.currentUser.uid), { forms })
+            .then(() => {
+              setSuccess(true);
+              setTimeout(() => {
+                fileUploadStart(false);
+
+                sendEmailVerification(auth.currentUser)
+                  .then(() => {
+                    alert(
+                      "Email verification link send to your email address!"
+                    );
+                  })
+                  .catch((err) => console.log(err.message));
+
+                navigate("/login");
+              }, 10000);
+            })
+            .catch((err) => console.log(err.message));
+        }
+      );
     } catch (err) {
       switch (err.code) {
         case "auth/email-already-in-use":
@@ -317,6 +327,7 @@ function Register() {
     }
 
     setLoading(false);
+    fileUploadStart(false);
   }
 
   const onInputChange = (e) => {
@@ -442,9 +453,7 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label className="label">
-                Middle Name <span style={{ color: "red" }}>*</span>{" "}
-              </label>
+              <label className="label">Middle Name</label>
               <p className="control">
                 <input
                   className="input"
@@ -751,123 +760,130 @@ function Register() {
   };
 
   return (
-    <div
-      style={{
-        marginTop: 50,
-        marginRight: "30%",
-        marginLeft: "30%",
-        padding: 35,
-        border: "1px solid #ccc",
-        borderRadius: 20,
-      }}
-    >
-      <div className="title">Register</div>
-
-      {/* Stepper*/}
-      {/* Errors Notification */}
-      {forms[step - 1].errors !== null && (
-        <>
-          <div class="notification is-danger is-light pl-6">
-            <h3>Errors:</h3>
-            <ul style={{ listStyleType: "disc" }}>
-              {forms[step - 1].errors.map((e) => (
-                <li>
-                  <strong>{e}</strong>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-around",
-          alignItems: "center",
-          position: "relative",
-          marginTop: 5,
-          marginBottom: 30,
-        }}
-      >
-        {renderStepperButton(
-          "Personal",
-          decideStepperButtonColor(0),
-          decideStepperButtonIcon(0),
-          1
-        )}
-        {renderStepperButton(
-          "Address",
-          decideStepperButtonColor(1),
-          decideStepperButtonIcon(1),
-          2
-        )}
-        {renderStepperButton(
-          "ID/Password",
-          decideStepperButtonColor(2),
-          decideStepperButtonIcon(2),
-          3
-        )}
-
+    <div className="columns">
+      <div className="column is-half">
         <div
           style={{
-            width: "65%",
-            height: 4,
-            backgroundColor: "#000",
-            position: "absolute",
-            top: "25%",
-            zIndex: 0,
+            marginTop: 50,
+            marginRight: "10%",
+            marginLeft: "10%",
+            padding: 35,
+            border: "1px solid #ccc",
+            borderRadius: 20,
           }}
-        />
-      </div>
-      {error.length > 0 && (
-        <div className="notification is-danger is-light">{error}</div>
-      )}
-      {success && (
-        <div class="notification is-success is-light">
-          <button onClick={() => setSuccess(false)} class="delete"></button>
-          Account has been successfully created!
-        </div>
-      )}
+        >
+          <div className="title">Register</div>
 
-      <form>{renderFormBody(step)}</form>
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          marginTop: 35,
-        }}
-      >
-        {loading ? (
-          <button
-            style={{ marginLeft: 5 }}
-            onClick={handleSubmission}
-            disabled={loading}
-            className="button is-info is-loading"
+          {/* Stepper*/}
+          {/* Errors Notification */}
+          {forms[step - 1].errors !== null && (
+            <>
+              <div class="notification is-danger is-light pl-6">
+                <h3>Errors:</h3>
+                <ul style={{ listStyleType: "disc" }}>
+                  {forms[step - 1].errors.map((e) => (
+                    <li>
+                      <strong>{e}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-around",
+              alignItems: "center",
+              position: "relative",
+              marginTop: 5,
+              marginBottom: 30,
+            }}
           >
-            {step == 3 ? "Register Account" : "Next"}
-          </button>
-        ) : (
-          <button
-            style={{ marginLeft: 5 }}
-            onClick={handleSubmission}
-            className="button is-info"
-          >
-            {step == 3 ? "Register Account" : "Next"}
-          </button>
-        )}
-      </div>
+            {renderStepperButton(
+              "Personal",
+              decideStepperButtonColor(0),
+              decideStepperButtonIcon(0),
+              1
+            )}
+            {renderStepperButton(
+              "Address",
+              decideStepperButtonColor(1),
+              decideStepperButtonIcon(1),
+              2
+            )}
+            {renderStepperButton(
+              "ID/Password",
+              decideStepperButtonColor(2),
+              decideStepperButtonIcon(2),
+              3
+            )}
 
-      <div className="field" style={{ marginTop: 50 }}>
-        <p className="control">
-          <span className="block" style={{ alignSelf: "flex-end" }}>
-            Already have an account?{" "}
-            <Link to={{ pathname: "/login" }}>Login </Link>
-          </span>
-          instead.
-        </p>
+            <div
+              style={{
+                width: "65%",
+                height: 4,
+                backgroundColor: "#000",
+                position: "absolute",
+                top: "25%",
+                zIndex: 0,
+              }}
+            />
+          </div>
+          {error.length > 0 && (
+            <div className="notification is-danger is-light">{error}</div>
+          )}
+          {success && (
+            <div class="notification is-success is-light">
+              <button onClick={() => setSuccess(false)} class="delete"></button>
+              Account has been successfully created!
+            </div>
+          )}
+
+          <form>{renderFormBody(step)}</form>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginTop: 35,
+            }}
+          >
+            {loading ? (
+              <button
+                style={{ marginLeft: 5 }}
+                onClick={handleSubmission}
+                disabled={loading}
+                className="button is-info is-loading"
+              >
+                {step == 3 ? "Register Account" : "Next"}
+              </button>
+            ) : (
+              <button
+                style={{ marginLeft: 5 }}
+                onClick={handleSubmission}
+                className="button is-info"
+              >
+                {step == 3 ? "Register Account" : "Next"}
+              </button>
+            )}
+          </div>
+
+          <div className="field" style={{ marginTop: 50 }}>
+            <p className="control">
+              <span className="block" style={{ alignSelf: "flex-end" }}>
+                Already have an account?{" "}
+                <Link to={{ pathname: "/login" }}>Login </Link>
+              </span>
+              instead.
+            </p>
+          </div>
+        </div>{" "}
+      </div>
+      <div className="column is-half">
+        <SideLogo />
       </div>
     </div>
   );

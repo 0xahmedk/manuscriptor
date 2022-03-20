@@ -37,7 +37,8 @@ const auth = getAuth();
 
 const storage = getStorage(app);
 
-const colRef = collection(db, "usersData");
+const papersColRef = collection(db, "papers");
+const usersColRef = collection(db, "users");
 
 export {
   auth,
@@ -47,7 +48,8 @@ export {
   createUserWithEmailAndPassword,
   storage,
   ref,
-  colRef,
+  papersColRef,
+  usersColRef,
   db,
 };
 
