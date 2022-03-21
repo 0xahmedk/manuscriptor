@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,6 +8,14 @@ import { useAuth } from "../contexts/FirebaseContext";
 import SideLogo from "./SideLogo";
 
 function Login() {
+  const queryString = window.location.search;
+
+  const urlParams = new URLSearchParams(queryString);
+
+  const [orcidAuthCode, setOrcidAuthCode] = useState(
+    urlParams.get("code") || null
+  );
+
   const [viewPassword, setViewPassword] = useState(false);
   const [state, setState] = useState({ email: "", password: "" });
 
@@ -128,6 +136,16 @@ function Login() {
                 <FontAwesomeIcon icon={faEye} />
               </i>
             </p>
+          </div>
+
+          <div class="field ">
+            <a
+              href="https://orcid.org/oauth/authorize?client_id=APP-0PPPQUENE57U0IJI&response_type=code&scope=/authenticate&redirect_uri=https://localhost:3000/"
+              rel="noopener noreferrer"
+            >
+              {orcidAuthCode}
+              Login with ORCID
+            </a>
           </div>
 
           <div class="field ">

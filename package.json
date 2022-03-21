@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "keywords": [],
-  "homepage": "https://ahmedk743.github.io/manuscriptor/",
+  "homepage": "https://ahmedk743.github.io/manuscriptor",
   "main": "src/index.js",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.3.0",
