@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -31,15 +31,18 @@ import {
 import { storage } from "../firebase";
 
 function MainForm({ initialForm }) {
+  const location = useLocation();
   let navigate = useNavigate();
+
+  console.log("params: ", location.state);
 
   const { currentUser, fileUploadStart, addPaper } = useAuth();
 
-  const [submissionType, setSubmissionType] = useState("sada");
+  const [submissionType, setSubmissionType] = useState("");
 
-  const [forms, setForms] = useState(initialForm);
+  const [forms, setForms] = useState(location.state || initialForm);
 
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
 
   const decideStepperButtonColor = (i) => {
     return forms[i].isCompleted
@@ -365,7 +368,7 @@ function MainForm({ initialForm }) {
   const [progress, setProgress] = useState(0);
   const [url, setURL] = useState("");
 
-  const uploadFile =  (file) => {
+  const uploadFile = (file) => {
     if (!file) return;
 
     const storageRef = ref(storage, `/files/${file.name}`);
@@ -373,11 +376,24 @@ function MainForm({ initialForm }) {
 
     uploadTask.on(
       "state_changed",
-      () => {},
-      (err) => console.log(err),
-      async () => {
-        await getDownloadURL(uploadTask.snapshot.ref).then((u) => setURL(u));
-        console.log(url);
+      (snapshot) => {
+        const prog = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+      },
+      (error) => console.log(error),
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          forms[1] = {
+            ...forms[1],
+            data: {
+              ...forms[1].data,
+              fileURL: downloadURL,
+            },
+          };
+
+          setForms([...forms]);
+        });
       }
     );
   };
@@ -1188,7 +1204,7 @@ function MainForm({ initialForm }) {
                                 className="file-input"
                                 type="file"
                                 name="resume"
-                                accept=".doc, .pdf, .docx"
+                                accept=".pdf"
                                 onChange={(e) => {
                                   filesSelected[i] = e.target.files[0];
                                   setFilesSelected([...filesSelected]);
@@ -1282,11 +1298,10 @@ function MainForm({ initialForm }) {
                     )
                   ) {
                     fileUploadStart(true);
-                    uploadFile(filesSelected[0]);
 
                     setTimeout(() => {
                       fileUploadStart(false);
-                    }, 30000);
+                    }, 10000);
                   }
                 }}
               >
@@ -1299,14 +1314,14 @@ function MainForm({ initialForm }) {
             <div className="block" />
 
             {/* Uploaded Files Table */}
-            <label className="label">Uploaded Files</label>
+            <label className="label">Files</label>
             <table className="table is-striped is-hoverable">
               <thead>
                 <tr>
                   <th>File Name</th>
                   <th>File Type</th>
                   <th>Upload Time</th>
-                  <th>Uploaded By</th>
+                  <th>Author</th>
                 </tr>
               </thead>
 
@@ -2084,7 +2099,7 @@ function MainForm({ initialForm }) {
                     console.log(err);
                   }
                 }}
-                // disabled={submitDisable && step === 4}
+                disabled={submitDisable && step === 4}
                 className="button is-info is-right"
               >
                 {step == 4 ? "Submit Paper" : "Next"}

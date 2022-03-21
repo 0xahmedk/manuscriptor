@@ -12,6 +12,8 @@ import { onSnapshot, query, where, collection } from "firebase/firestore";
 
 import { useAuth } from "../contexts/FirebaseContext";
 import { db } from "../firebase";
+import { saveAs } from "file-saver";
+import { Link } from "react-router-dom";
 
 function Submissions() {
   const [submittedForms, setSubmittedForms] = useState([]);
@@ -28,7 +30,6 @@ function Submissions() {
           forms.push({ ...doc.data() });
         });
         setSubmittedForms(forms);
-        console.log(forms);
       });
 
       return () => {
@@ -84,7 +85,14 @@ function Submissions() {
                     <td>{s.forms[0].data.authorsList[0].name}</td>
                     <td>
                       {s.status === "completed" ? (
-                        <a href="/">
+                        <a
+                          onClick={() => {
+                            saveAs(
+                              s.forms[1].data.fileURL,
+                              "submitted_paper_proof.pdf"
+                            );
+                          }}
+                        >
                           View Document
                           <FontAwesomeIcon
                             style={{ marginLeft: 3 }}
@@ -92,13 +100,13 @@ function Submissions() {
                           />
                         </a>
                       ) : (
-                        <a href="/">
+                        <Link to={{ pathname: "/submit" }} state={s.forms}>
                           Continue
                           <FontAwesomeIcon
                             style={{ marginLeft: 3 }}
                             icon={faChevronRight}
                           />
-                        </a>
+                        </Link>
                       )}
                     </td>
                   </tr>
