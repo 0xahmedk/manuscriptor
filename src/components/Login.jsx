@@ -16,6 +16,27 @@ function Login() {
     urlParams.get("code") || null
   );
 
+  useEffect(() => {
+    if (orcidAuthCode) {
+      console.log(
+        "API Call: ",
+        `client_id=APP-0PPPQUENE57U0IJI&client_secret=793536c5-e809-406e-b0e6-a8140a389d73&grant_type=authorization_code&redirect_uri=https://localhost:3000&code=${orcidAuthCode}`
+      );
+      fetch("https://orcid.org/oauth/token", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: `client_id=APP-0PPPQUENE57U0IJI&client_secret=793536c5-e809-406e-b0e6-a8140a389d73&grant_type=authorization_code&redirect_uri=https://localhost:3000&code=${orcidAuthCode}`,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((error) => console.log(error));
+    }
+  }, []);
+
   const [viewPassword, setViewPassword] = useState(false);
   const [state, setState] = useState({ email: "", password: "" });
 
