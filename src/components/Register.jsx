@@ -202,9 +202,9 @@ function Register() {
           if (forms[0].data.department === "") {
             errs.push("Please enter your Department");
           }
-          if (forms[0].data.institution.value === "") {
-            errs.push("Please enter your Institution");
-          }
+          // if (forms[0].data.institution.value === "") {
+          //   errs.push("Please enter your Institution");
+          // }
 
           if (errs.length != 0) {
             addErrorsToFormsState(errs, step);
@@ -520,9 +520,7 @@ function Register() {
             </div>
 
             <div className="field">
-              <label className="label">
-                Institution <span style={{ color: "red" }}>*</span>{" "}
-              </label>
+              <label className="label">Institution</label>
               <Select
                 placeholder="Select Institution"
                 options={institutionsOptions}

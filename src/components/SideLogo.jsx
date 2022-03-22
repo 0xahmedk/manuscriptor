@@ -5,6 +5,8 @@ function SideLogo() {
 
   const urlParams = new URLSearchParams(queryString);
 
+  console.log("url Params: ", urlParams);
+
   return urlParams.get("name") ? (
     <div style={{ marginTop: 30, marginLeft: 20, marginRight: 30 }}>
       <img src={urlParams.get("logo")} alt="logo" srcset="" />
@@ -18,7 +20,7 @@ function SideLogo() {
       <div className="block" />
       <div className="title">Welcome!</div>
       <div className="subtitle">
-        To the International Islamic University, Islamabad's Journal
+        To the International Islamic University's Journal...
       </div>
     </div>
   );

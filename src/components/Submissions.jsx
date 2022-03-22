@@ -85,14 +85,7 @@ function Submissions() {
                     <td>{s.forms[0].data.authorsList[0].name}</td>
                     <td>
                       {s.status === "completed" ? (
-                        <a
-                          onClick={() => {
-                            saveAs(
-                              s.forms[1].data.fileURL,
-                              "submitted_paper_proof.pdf"
-                            );
-                          }}
-                        >
+                        <a href={s.forms[1].data.fileURL} target="_blank">
                           View Document
                           <FontAwesomeIcon
                             style={{ marginLeft: 3 }}

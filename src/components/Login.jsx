@@ -12,6 +12,8 @@ function Login() {
 
   const urlParams = new URLSearchParams(queryString);
 
+  console.log("url Params Login: ", urlParams.get("codee"));
+
   const [orcidAuthCode, setOrcidAuthCode] = useState(
     urlParams.get("code") || null
   );
@@ -25,9 +27,9 @@ function Login() {
       fetch("https://orcid.org/oauth/token", {
         method: "POST",
         headers: {
-          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: `client_id=APP-0PPPQUENE57U0IJI&client_secret=793536c5-e809-406e-b0e6-a8140a389d73&grant_type=authorization_code&redirect_uri=https://localhost:3000&code=${orcidAuthCode}`,
+        body: `client_id=APP-0PPPQUENE57U0IJI&client_secret=793536c5-e809-406e-b0e6-a8140a389d73&grant_type=authorization_code&redirect_uri=https://ahmedk743.github.io/manuscriptor/#/login&code=${orcidAuthCode}`,
       })
         .then((res) => res.json())
         .then((data) => {
@@ -160,13 +162,27 @@ function Login() {
           </div>
 
           <div class="field ">
-            <a
-              href="https://orcid.org/oauth/authorize?client_id=APP-0PPPQUENE57U0IJI&response_type=code&scope=/authenticate&redirect_uri=https://localhost:3000/"
+            <button
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onClick={() => {
+                window.location.href =
+                  "https://orcid.org/oauth/authorize?client_id=APP-0PPPQUENE57U0IJI&response_type=code&scope=/authenticate&redirect_uri=https://ahmedk743.github.io/manuscriptor/#/login";
+              }}
               rel="noopener noreferrer"
             >
-              {orcidAuthCode}
+              <img
+                style={{ width: 24, height: 24, marginRight: 5 }}
+                src={require("../assets/ORCID.png")}
+                alt="orcid"
+                srcset=""
+              />
               Login with ORCID
-            </a>
+            </button>
           </div>
 
           <div class="field ">
@@ -186,6 +202,7 @@ function Login() {
                   }
                 }}
                 to={{ pathname: "/" }}
+                style={{ textDecorationLine: "underline" }}
               >
                 Reset Password
               </a>

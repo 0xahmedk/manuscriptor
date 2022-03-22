@@ -15,7 +15,22 @@ import Error404 from "../components/Error404";
 import { useAuth } from "../contexts/FirebaseContext";
 
 const MainRoutes = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
+
+  // console.log("userData Routes: ", userData, userData.length != 0);
+
+  // const getInstitution = () => {
+  //   let institution;
+  //   setTimeout(() => {
+  //     institution =
+  //       userData &&
+  //       userData.length != 0 &&
+  //       userData.forms[0].data.institution.value;
+  //   }, 5000);
+
+  //   return institution;
+  // };
+
   const INITIAL_FORM = currentUser
     ? [
         {
@@ -29,7 +44,7 @@ const MainRoutes = () => {
                 name: currentUser.displayName,
                 email: currentUser.email,
                 orcid: "1234-1234-1234-1234",
-                institution: "International Islamic University",
+                institution: "International Islamic University, Islamabad",
               },
             ],
             submittingAgent: "",

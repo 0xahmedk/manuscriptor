@@ -20,7 +20,6 @@ import { createPDF, pdfArrayToBlob, mergePDF } from "pdf-actions";
 import { saveAs } from "file-saver";
 
 import { useAuth } from "../contexts/FirebaseContext";
-import FileUploadTester from "./FileUploadTester";
 import ReviewAndSubmit from "./ReviewAndSubmit";
 import {
   getDownloadURL,
@@ -34,9 +33,7 @@ function MainForm({ initialForm }) {
   const location = useLocation();
   let navigate = useNavigate();
 
-  console.log("params: ", location.state);
-
-  const { currentUser, fileUploadStart, addPaper } = useAuth();
+  const { currentUser, fileUploadStart, addPaper, userData } = useAuth();
 
   const [submissionType, setSubmissionType] = useState("");
 
@@ -171,7 +168,7 @@ function MainForm({ initialForm }) {
   const setErrorsToNull = (step) => {
     forms[step - 1] = {
       ...forms[step - 1],
-      errors: null,
+      errors: ["Please fill out this form!"],
       isCompleted: true,
     };
     setForms([...forms]);
@@ -303,8 +300,26 @@ function MainForm({ initialForm }) {
 
       setErrorsToNull(step);
       //submit paper
+
+      submitPaper();
     }
   }
+
+  const submitPaper = async () => {
+    try {
+      fileUploadStart(true);
+      await addPaper({
+        id: currentUser.uid,
+        forms,
+        status: "completed",
+      }).then(() => {
+        fileUploadStart(false);
+        navigate("/success");
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleInputs = (e, step) => {
     forms[step - 1] = {
@@ -360,7 +375,7 @@ function MainForm({ initialForm }) {
 
   const checkIfAllFilesSelected = () => {
     for (const element of filesSelected) {
-      if (element == "") return false;
+      if (element.name == "") return false;
     }
     return true;
   };
@@ -391,6 +406,7 @@ function MainForm({ initialForm }) {
               fileURL: downloadURL,
             },
           };
+          console.log("Url in Main: ", downloadURL);
 
           setForms([...forms]);
         });
@@ -1004,7 +1020,7 @@ function MainForm({ initialForm }) {
                   <tr key={a.orcid}>
                     <td>{a.name}</td>
                     <td>{a.email}</td>
-                    <td>{a.orcid}</td>
+                    <td>-</td>
                     <td>{a.institution}</td>
                     <td>
                       {a.name !== currentUser.displayName && (
@@ -1289,7 +1305,7 @@ function MainForm({ initialForm }) {
               }}
             >
               <button
-                // disabled={checkIfAllFilesSelected() ? true : false}
+                disabled={checkIfAllFilesSelected() ? false : true}
                 className="button is-info"
                 onClick={() => {
                   if (
@@ -1958,13 +1974,13 @@ function MainForm({ initialForm }) {
             <div className="subtitle">{submissionType}</div>
             {/* <FileUploadTester /> */}
             {/* Errors Notification */}
-            {forms[step - 1].errors != null && (
+            {forms[step - 1]?.errors != null && (
               <div class="notification is-danger is-light pl-6">
                 <h3>
                   <strong>Errors: </strong>
                 </h3>
                 <ul style={{ listStyleType: "disc" }}>
-                  {forms[step - 1].errors.map((e) => (
+                  {forms[step - 1]?.errors.map((e) => (
                     <li>{e}</li>
                   ))}
                 </ul>
@@ -2027,6 +2043,7 @@ function MainForm({ initialForm }) {
 
             {step === 4 && (
               <button
+                disabled={checkIfAllFilesSelected() ? false : true}
                 onClick={() => {
                   mergePDFHandler(filesSelected);
                 }}
@@ -2084,21 +2101,7 @@ function MainForm({ initialForm }) {
 
               <button
                 style={{ marginLeft: 5 }}
-                onClick={async () => {
-                  try {
-                    fileUploadStart(true);
-                    await addPaper({
-                      id: currentUser.uid,
-                      forms,
-                      status: "completed",
-                    }).then(() => {
-                      fileUploadStart(false);
-                      navigate("/success");
-                    });
-                  } catch (err) {
-                    console.log(err);
-                  }
-                }}
+                onClick={handleSubmission}
                 disabled={submitDisable && step === 4}
                 className="button is-info is-right"
               >
