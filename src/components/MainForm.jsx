@@ -29,16 +29,21 @@ import {
 } from "firebase/storage";
 import { storage } from "../firebase";
 
+var emailValidation = new RegExp(
+  /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i
+);
+
 function MainForm({ initialForm }) {
   const location = useLocation();
   let navigate = useNavigate();
 
   const { currentUser, fileUploadStart, addPaper, userData } = useAuth();
 
-  const [submissionType, setSubmissionType] = useState("");
+  const [forms, setForms] = useState(location.state?.forms || initialForm);
 
-  const [forms, setForms] = useState(location.state || initialForm);
-
+  const [submissionType, setSubmissionType] = useState(
+    location.state?.submissionType || ""
+  );
   const [step, setStep] = useState(1);
 
   const decideStepperButtonColor = (i) => {
@@ -130,10 +135,7 @@ function MainForm({ initialForm }) {
     { value: "business history", label: "Business history" },
     { value: "business law", label: "Business law" },
   ]);
-  const [currentSelectVal, setCurrentSelectVal] = useState({
-    value: "",
-    label: "Select Value",
-  });
+  const [currentSelectVal, setCurrentSelectVal] = useState("");
   const [showKeywordsList, setShowKeywordsList] = useState(false);
 
   const [state, setState] = useState({
@@ -311,7 +313,9 @@ function MainForm({ initialForm }) {
       await addPaper({
         id: currentUser.uid,
         forms,
-        status: "completed",
+        submission: "completed",
+        status: "pending",
+        submissionType,
       }).then(() => {
         fileUploadStart(false);
         navigate("/success");
@@ -624,10 +628,10 @@ function MainForm({ initialForm }) {
                 borderRadius: 5,
               }}
             >
-              Min. 3, Max 5
+              Min. Keywords 3, Max. Keywords 5
             </span>
             <div className="block">
-              <CreatableSelect
+              {/* <CreatableSelect
                 placeholder="Select Keyword"
                 isDisabled={
                   forms[0].data.addedKeywords.length > 4 ? true : false
@@ -645,6 +649,11 @@ function MainForm({ initialForm }) {
 
                   setForms([...forms]);
                 }}
+              /> */}
+              <input
+                className="input"
+                value={currentSelectVal}
+                onChange={(e) => setCurrentSelectVal(e.target.value)}
               />
             </div>
             <div className="block">
@@ -659,18 +668,18 @@ function MainForm({ initialForm }) {
 
                 <button
                   onClick={() => {
-                    if (currentSelectVal.value != "")
-                      forms[0].data.addedKeywords.push(currentSelectVal);
-                    setForms([...forms]);
-                    setCurrentSelectVal({
-                      value: "",
-                      label: "Select Value",
-                    });
-                    setOptions(
-                      options.filter(function (el) {
-                        return el.value != currentSelectVal.value;
-                      })
-                    );
+                    if (currentSelectVal != "") {
+                      currentSelectVal.split(/,+|,\s+/g).forEach((item) => {
+                        forms[0].data.addedKeywords.push({
+                          value: item,
+                          label: item.charAt(0).toUpperCase() + item.slice(1),
+                        });
+                      });
+
+                      setForms([...forms]);
+                    }
+
+                    setCurrentSelectVal("");
                   }}
                   className="button is-info"
                 >
@@ -837,6 +846,9 @@ function MainForm({ initialForm }) {
                   <footer className="modal-card-foot">
                     <button
                       onClick={() => {
+                        if (!emailValidation.test(author.email)) {
+                          return alert("Please enter valid email address.");
+                        }
                         forms[0].data.authorsList.push(author);
                         setForms(forms);
                         setToggleAuthorModal(false);
@@ -953,6 +965,9 @@ function MainForm({ initialForm }) {
                   <footer className="modal-card-foot">
                     <button
                       onClick={() => {
+                        if (!emailValidation.test(editAuthor.email)) {
+                          return alert("Please enter valid email address.");
+                        }
                         let authorsNewList = forms[0].data.authorsList.filter(
                           function (el) {
                             return el.orcid !== editAuthorId;
@@ -1002,8 +1017,8 @@ function MainForm({ initialForm }) {
             <table className="table is-striped is-hoverable">
               <thead>
                 <tr>
-                  <th>Serial No</th>
-                  <th>Author</th>
+                  <th>Name</th>
+                  <th>Email</th>
                   <th>ORCID</th>
                   <th>Institution</th>
                   <th>Action</th>
@@ -1076,6 +1091,14 @@ function MainForm({ initialForm }) {
             </table>
             <div className="block" />
             <div className="block" />
+            <hr
+              style={{
+                backgroundColor: "#777",
+                height: 3,
+                marginTop: 3,
+                marginBottom: 6,
+              }}
+            />
 
             <div className="field">
               <label className="label">
@@ -1099,6 +1122,7 @@ function MainForm({ initialForm }) {
                   behalf of myself and my co-authors.
                 </label>
               </p>
+              <div className="block" />
               <p className="control">
                 <label className="radio">
                   <input
@@ -1119,13 +1143,21 @@ function MainForm({ initialForm }) {
             </div>
 
             <div className="block" />
+            <hr
+              style={{
+                backgroundColor: "#777",
+                height: 3,
+                marginTop: 3,
+                marginBottom: 6,
+              }}
+            />
 
             <div className="field">
               <label className="label">
                 <strong>
                   Please confirm that you are the sole author OR have listed all
                   other co-authors and have their approval to submit this
-                  manuscript by checking the box below.
+                  manuscript by Selecting the option below.
                 </strong>
                 <span style={{ color: "red" }}>*</span>
               </label>{" "}
@@ -1147,6 +1179,7 @@ function MainForm({ initialForm }) {
                   </span>
                 </label>
               </p>
+              <div className="block" />
               <p className="control">
                 <label className="radio">
                   <input
@@ -1172,7 +1205,17 @@ function MainForm({ initialForm }) {
 
             {/* Pick Files */}
             <label className="label">
-              Pick Files<span style={{ color: "red" }}>*</span>
+              Pick Files
+              <span
+                style={{
+                  color: `${checkIfAllFilesSelected() ? `green` : `red`}`,
+                }}
+              >
+                * A minimum of 4 files must be uploaded:
+              </span>
+              <p>1) A Title Page type file must be selected</p>
+              <p>2) An Article type file must be selected</p>
+              <p>3) A Supplementary type file must be selected</p>
             </label>
             <table className="table is-striped is-hoverable">
               <thead>
@@ -1468,6 +1511,15 @@ function MainForm({ initialForm }) {
               </div>
             </div>
 
+            <hr
+              style={{
+                backgroundColor: "#777",
+                height: 3,
+                marginTop: 3,
+                marginBottom: 6,
+              }}
+            />
+
             <div className="field">
               <label className="label">
                 <strong>Has this manuscript submitted previously?</strong>
@@ -1529,6 +1581,15 @@ function MainForm({ initialForm }) {
                 </div>
               </div>
             )}
+
+            <hr
+              style={{
+                backgroundColor: "#777",
+                height: 3,
+                marginTop: 3,
+                marginBottom: 6,
+              }}
+            />
 
             <div className="field">
               <label className="label">
@@ -1877,7 +1938,9 @@ function MainForm({ initialForm }) {
                   type="checkbox"
                   onChange={() => setIsConfirmed1(!isConfirmed1)}
                 />
-                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                <span style={{ color: "red", marginLeft: 5, marginTop: 8 }}>
+                  *
+                </span>
                 Confirm that the manuscript has been submitted solely to this
                 journal and is not published, in press, or submitted elsewhere.
               </label>
@@ -1889,7 +1952,9 @@ function MainForm({ initialForm }) {
                   type="checkbox"
                   onChange={() => setIsConfirmed2(!isConfirmed2)}
                 />
-                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                <span style={{ color: "red", marginLeft: 5, marginTop: 8 }}>
+                  *
+                </span>
                 Confirm that all the research meets the ethical guidelines,
                 including adherence to the legal requirements of the study
                 country.
@@ -1902,7 +1967,9 @@ function MainForm({ initialForm }) {
                   type="checkbox"
                   onChange={() => setIsConfirmed3(!isConfirmed3)}
                 />
-                <span style={{ color: "red", marginLeft: 5 }}>*</span>
+                <span style={{ color: "red", marginLeft: 5, marginTop: 8 }}>
+                  *
+                </span>
                 Confirm that you have prepared a complete text within the
                 anonymous article file. Any identifying information has been
                 included separately in a title page, acknowledgements or
@@ -1937,7 +2004,7 @@ function MainForm({ initialForm }) {
           padding: 35,
           border: "1px solid #ccc",
           borderRadius: 20,
-          paddingBottom: submissionType == "" ? 200 : 20,
+          paddingBottom: submissionType == "" ? 300 : 20,
         }}
       >
         <div className="title">Submission</div>
@@ -2077,6 +2144,14 @@ function MainForm({ initialForm }) {
               </button>
               <button
                 style={{ marginLeft: 5 }}
+                onClick={() => setStep(step - 1)}
+                disabled={submitDisable && step === 1}
+                className="button is-light"
+              >
+                {"Previous"}
+              </button>
+              <button
+                style={{ marginLeft: 5 }}
                 onClick={async () => {
                   if (window.confirm(`Are you sure to leave and save data?`)) {
                     try {
@@ -2084,7 +2159,9 @@ function MainForm({ initialForm }) {
                       await addPaper({
                         id: currentUser.uid,
                         forms,
-                        status: "drafted",
+                        submission: "drafted",
+                        status: "pending",
+                        submissionType,
                       }).then(() => {
                         fileUploadStart(false);
                         navigate("/submissions");

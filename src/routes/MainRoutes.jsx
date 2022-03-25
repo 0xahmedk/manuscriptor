@@ -13,6 +13,7 @@ import ProtectedRoutes from "./ProtectedRoutes";
 import PublicRoutes from "./PublicRoutes";
 import Error404 from "../components/Error404";
 import { useAuth } from "../contexts/FirebaseContext";
+import UpdateProfile from "../components/UpdateProfile";
 
 const MainRoutes = () => {
   const { currentUser, userData } = useAuth();
@@ -37,7 +38,7 @@ const MainRoutes = () => {
           data: {
             title: "",
             abstract: "",
-            addMaterial: "",
+            addMaterial: `Please email your additional material to: ${currentUser.email}`,
             addedKeywords: [],
             authorsList: [
               {
@@ -90,6 +91,8 @@ const MainRoutes = () => {
         />
         <Route path="/submissions" element={<Submissions />} />
         <Route path="/success" element={<SubmissionSuccessful />} />
+        <Route path="/updateprofile" element={<UpdateProfile />} />
+
         <Route
           path="/submit"
           element={<MainForm initialForm={INITIAL_FORM} />}

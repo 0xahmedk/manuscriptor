@@ -83,22 +83,9 @@ export function FirebaseProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    if (currentUser) {
-      const userRef = doc(db, "users", currentUser?.uid);
-      var unsubscribe = onSnapshot(userRef, (user) => {
-        if (user.exists()) {
-          setUserData(user.data().forms);
-        } else {
-          console.log("No users");
-        }
-      });
+  // function getUserData () {
 
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [currentUser]);
+  // }
 
   const value = {
     currentUser,
@@ -111,7 +98,6 @@ export function FirebaseProvider({ children }) {
     fileUploadLoading,
     addPaper,
     addUser,
-    userData,
   };
 
   return (

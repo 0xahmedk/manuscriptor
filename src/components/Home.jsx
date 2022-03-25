@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../contexts/FirebaseContext";
+import SideLogo from "./SideLogo";
 
 function Home() {
   const [error, setError] = useState("");
@@ -13,29 +14,43 @@ function Home() {
         <div className="notification is-danger is-light">{error}</div>
       )}
       {currentUser && (
-        <section className="hero is-fullheight has-text-centered">
-          <div className="hero-body">
-            {currentUser ? (
-              <div className="">
-                <p className="title">Hi, {currentUser.displayName}</p>
-                <p className="title">
-                  You are all set now with your account you can start submission
-                  now by clicking button below
-                </p>
-                <Link to={{ pathname: "/submit" }}>
-                  <button className="button is-info">Start Submission</button>
-                </Link>
+        <div className="columns">
+          <div className="column is-half">
+            {" "}
+            <section
+              style={{ borderRight: "2px solid #7773" }}
+              className="hero is-fullheight has-text-centered"
+            >
+              <div className="hero-body">
+                {currentUser ? (
+                  <div className="">
+                    <p className="title">Hi, {currentUser.displayName}</p>
+                    <p className="subtitle">
+                      You are all set now with your account you can start
+                      submission now by clicking button below
+                    </p>
+                    <Link to={{ pathname: "/submit" }}>
+                      <button className="button is-info">
+                        Make a Submission
+                      </button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="">
+                    <p className="title">
+                      Looks Like you are not Logged into an account!
+                    </p>
+                    <p className="title">First Login</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="">
-                <p className="title">
-                  Looks Like you are not Logged into an account!
-                </p>
-                <p className="title">First Login</p>
-              </div>
-            )}
+            </section>
           </div>
-        </section>
+
+          <div className="column is-half">
+            <SideLogo />
+          </div>
+        </div>
       )}
     </div>
   );

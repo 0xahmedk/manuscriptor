@@ -51,10 +51,11 @@ function Submissions() {
               <thead>
                 <tr>
                   <th></th>
-                  <th>Status</th>
+                  <th>Submission</th>
                   <th>Title</th>
                   <th>Author</th>
                   <th>Action</th>
+                  <th>Status</th>
                 </tr>
               </thead>
 
@@ -63,7 +64,7 @@ function Submissions() {
                   <tr>
                     <td>{i + 1}</td>
                     <td>
-                      {s.status === "completed" ? (
+                      {s.submission === "completed" ? (
                         <span style={{ color: "green" }}>
                           <FontAwesomeIcon
                             style={{ marginRight: 3 }}
@@ -84,7 +85,7 @@ function Submissions() {
                     <td>{s.forms[0].data.title}</td>
                     <td>{s.forms[0].data.authorsList[0].name}</td>
                     <td>
-                      {s.status === "completed" ? (
+                      {s.submission === "completed" ? (
                         <a href={s.forms[1].data.fileURL} target="_blank">
                           View Document
                           <FontAwesomeIcon
@@ -93,7 +94,13 @@ function Submissions() {
                           />
                         </a>
                       ) : (
-                        <Link to={{ pathname: "/submit" }} state={s.forms}>
+                        <Link
+                          to={{ pathname: "/submit" }}
+                          state={{
+                            forms: s.forms,
+                            submissionType: s.submissionType,
+                          }}
+                        >
                           Continue
                           <FontAwesomeIcon
                             style={{ marginLeft: 3 }}
@@ -102,6 +109,7 @@ function Submissions() {
                         </Link>
                       )}
                     </td>
+                    <td>{s.status}</td>
                   </tr>
                 ))}
               </tbody>

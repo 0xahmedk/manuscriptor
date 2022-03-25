@@ -15,7 +15,7 @@ function SideLogo() {
       <div className="subtitle">{urlParams.get("details")}</div>
     </div>
   ) : (
-    <div style={{ marginTop: 60, marginLeft: 20, marginRight: 30 }}>
+    <div style={{ marginTop: 160, marginLeft: 20, marginRight: 30 }}>
       <img src={require("../assets/iiui.png")} alt="iiui" srcset="" />
       <div className="block" />
       <div className="title">Welcome!</div>

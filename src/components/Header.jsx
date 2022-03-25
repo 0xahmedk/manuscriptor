@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSignOut } from "@fortawesome/free-solid-svg-icons";
+import { faSignOut, faUser } from "@fortawesome/free-solid-svg-icons";
 
 import { useAuth } from "../contexts/FirebaseContext";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 function Header() {
+  const [userData, setUserData] = useState([]);
   const { currentUser, logout } = useAuth();
 
   let navigate = useNavigate();
@@ -20,6 +23,17 @@ function Header() {
     }
   }
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      console.log("userDataHeaderasdasdasdasdsad: ", currentUser?.uid);
+      const userRef = doc(db, "users", currentUser?.uid);
+      const docSnap = await getDoc(userRef);
+      setUserData(docSnap.data());
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <nav
       className="navbar has-shadow py-3 is-info"
@@ -29,7 +43,7 @@ function Header() {
       <div className="navbar-brand">
         <a style={{ marginLeft: 15 }} className="navbar-item" href="/">
           <strong style={{ fontWeight: "700", fontSize: 24 }}>
-            MANUSCRIPTOR
+            IIUI MANUSCRIPT MANAGEMENT SYSTEM
           </strong>
         </a>
 
@@ -73,11 +87,24 @@ function Header() {
                       fontWeight: "bold",
                     }}
                   >
-                    {currentUser?.displayName}
+                    {userData.length !== 0 && userData?.forms[0].data.firstName}
                   </a>
 
                   <div className="navbar-dropdown">
                     <span className="navbar-item">{currentUser?.email}</span>
+                    <hr className="navbar-divider" />
+                    <div className="navbar-item">
+                      <FontAwesomeIcon
+                        style={{ marginRight: 5 }}
+                        icon={faUser}
+                      />
+                      <Link
+                        to={{ pathname: "/updateprofile" }}
+                        state={userData.forms}
+                      >
+                        Update Profile
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 <button

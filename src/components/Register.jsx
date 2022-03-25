@@ -365,7 +365,9 @@ function Register() {
       >
         <FontAwesomeIcon icon={icon} color="#fff" />
       </button>
-      <span style={{ width: 90, textAlign: "center" }}>{title}</span>
+      <span style={{ width: 90, textAlign: "center", marginTop: -5 }}>
+        {title}
+      </span>
     </div>
   );
 
@@ -500,25 +502,6 @@ function Register() {
                 />
               </p>
             </div>
-
-            <div className="field">
-              <label className="label">
-                Department<span style={{ color: "red" }}>*</span>{" "}
-              </label>
-              <p className="control">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Department"
-                  name="department"
-                  value={forms[step - 1].data.department}
-                  onChange={(e) => {
-                    handleInputs(e, step);
-                  }}
-                />
-              </p>
-            </div>
-
             <div className="field">
               <label className="label">Institution</label>
               <Select
@@ -539,6 +522,24 @@ function Register() {
                   setForms([...forms]);
                 }}
               />
+            </div>
+
+            <div className="field">
+              <label className="label">
+                Department<span style={{ color: "red" }}>*</span>{" "}
+              </label>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Department"
+                  name="department"
+                  value={forms[step - 1].data.department}
+                  onChange={(e) => {
+                    handleInputs(e, step);
+                  }}
+                />
+              </p>
             </div>
           </>
         );
@@ -579,11 +580,11 @@ function Register() {
               </p>
             </div>
             <div className="field">
-              <label className="label">Street #</label>
+              <label className="label">Address</label>
               <p className="control">
                 <input
                   className="input"
-                  type="number"
+                  type="text"
                   placeholder="Street No"
                   name="street"
                   value={forms[step - 1].data.street}
@@ -770,7 +771,7 @@ function Register() {
             borderRadius: 20,
           }}
         >
-          <div className="title">Register</div>
+          <div className="title">Register A User</div>
 
           {/* Stepper*/}
           {/* Errors Notification */}
@@ -800,19 +801,19 @@ function Register() {
             }}
           >
             {renderStepperButton(
-              "Personal",
+              "Personal Information",
               decideStepperButtonColor(0),
               decideStepperButtonIcon(0),
               1
             )}
             {renderStepperButton(
-              "Address",
+              "Address Information",
               decideStepperButtonColor(1),
               decideStepperButtonIcon(1),
               2
             )}
             {renderStepperButton(
-              "ID/Password",
+              "Account Information",
               decideStepperButtonColor(2),
               decideStepperButtonIcon(2),
               3
@@ -841,12 +842,22 @@ function Register() {
 
           <form>{renderFormBody(step)}</form>
 
+          <div className="field" style={{ marginTop: 15 }}>
+            <p className="control">
+              <span className="block" style={{ alignSelf: "flex-end" }}>
+                Already have an account?{" "}
+                <Link to={{ pathname: "/login" }}>Login </Link>
+              </span>
+              instead.
+            </p>
+          </div>
+
           <div
             style={{
               display: "flex",
               flexDirection: "row",
               justifyContent: "flex-end",
-              marginTop: 35,
+              marginTop: 5,
             }}
           >
             {loading ? (
@@ -864,19 +875,9 @@ function Register() {
                 onClick={handleSubmission}
                 className="button is-info"
               >
-                {step == 3 ? "Register Account" : "Next"}
+                {step == 3 ? "Create Account" : "Next"}
               </button>
             )}
-          </div>
-
-          <div className="field" style={{ marginTop: 50 }}>
-            <p className="control">
-              <span className="block" style={{ alignSelf: "flex-end" }}>
-                Already have an account?{" "}
-                <Link to={{ pathname: "/login" }}>Login </Link>
-              </span>
-              instead.
-            </p>
           </div>
         </div>{" "}
       </div>

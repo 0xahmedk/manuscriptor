@@ -208,13 +208,22 @@ function Login() {
               </a>
             </div>
           </div>
+          <div class="field" style={{ marginTop: 10 }}>
+            <p class="control">
+              <span className="block" style={{ alignSelf: "flex-end" }}>
+                Don't have an account?{" "}
+                <Link to={{ pathname: "/register" }} href="#">
+                  Register!
+                </Link>
+              </span>
+            </p>
+          </div>
 
           <div
             style={{
               display: "flex",
               flexDirection: "row",
               justifyContent: "flex-end",
-              marginTop: 35,
             }}
           >
             <button
@@ -224,17 +233,6 @@ function Login() {
             >
               Login
             </button>
-          </div>
-
-          <div class="field" style={{ marginTop: 50 }}>
-            <p class="control">
-              <span className="block" style={{ alignSelf: "flex-end" }}>
-                Don't have an account?{" "}
-                <Link to={{ pathname: "/register" }} href="#">
-                  Register!
-                </Link>
-              </span>
-            </p>
           </div>
         </div>
       </div>
