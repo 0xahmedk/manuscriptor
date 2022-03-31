@@ -24,14 +24,15 @@ function Header() {
   }
 
   useEffect(() => {
-    const fetchUser = async () => {
-      console.log("userDataHeaderasdasdasdasdsad: ", currentUser?.uid);
+    
+ const fetchUser = async () => {
+      console.log("user: ", currentUser?.uid);
       const userRef = doc(db, "users", currentUser?.uid);
       const docSnap = await getDoc(userRef);
       setUserData(docSnap.data());
     };
-
-    fetchUser();
+ 
+     if(currentUser) fetchUser();
   }, []);
 
   return (
