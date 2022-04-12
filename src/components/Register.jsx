@@ -50,6 +50,7 @@ function Register() {
     }
 
     setInstitutionsOptions(universities);
+    console.log(institutionsOptions);
   };
 
   useMemo(async () => {
