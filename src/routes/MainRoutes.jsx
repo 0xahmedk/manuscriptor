@@ -85,10 +85,7 @@ const MainRoutes = () => {
       {/** Protected Routes */}
       {/** Wrap all Route under ProtectedRoutes element */}
       <Route path="/" element={<ProtectedRoutes />}>
-        <Route
-          path="/"
-          element={currentUser?.emailVerified ? <Home /> : <RedirectVerify />}
-        />
+        <Route path="/" element={<Home />} />
         <Route path="/submissions" element={<Submissions />} />
         <Route path="/success" element={<SubmissionSuccessful />} />
         <Route path="/updateprofile" element={<UpdateProfile />} />

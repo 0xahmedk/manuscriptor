@@ -19,13 +19,12 @@ import {
 } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAlXZEKJ-OcrLs_n7QEiOi7Ft0MbGdU-q0",
-  authDomain: "manuscriptor-89ff4.firebaseapp.com",
-  projectId: "manuscriptor-89ff4",
-  storageBucket: "manuscriptor-89ff4.appspot.com",
-  messagingSenderId: "896627881435",
-  appId: "1:896627881435:web:30ea017bbe7bb1ac0163fe",
-  measurementId: "G-W7S9FLXN60",
+  apiKey: "AIzaSyBM6MYnv53YnqXLRGTS70DTlPWyLMlKZ3o",
+  authDomain: "manuscriptor-new.firebaseapp.com",
+  projectId: "manuscriptor-new",
+  storageBucket: "manuscriptor-new.appspot.com",
+  messagingSenderId: "1064653930035",
+  appId: "1:1064653930035:web:5c338203e0766445a9ad46",
 };
 
 // Initialize Firebase
